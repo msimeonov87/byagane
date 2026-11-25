@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Бягане – план</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d62d20">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a calm training logbook you check at 5:50 before a run.
+   IDEA: the red-white trail blaze on Vitosha marks the way; today's card wears it.
+   PICTURE: the week itself, seven day cards with today blazed and opened.
+   COLOUR and TYPE: white ground, near-black ink, trail-marker red accent; Archivo + Inter.
+   LAYOUT: one column for the phone, bottom tab bar, sticky week switcher. */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#111214);--card:light-dark(#f5f5f4,#1b1c1f);--ink:light-dark(#151515,#f1f1ef);--mute:light-dark(#66666b,#a1a1a8);--line:light-dark(#e2e2e0,#2c2d31);--red:light-dark(#d62d20,#ff5a4c);--soft:light-dark(#fbe7e5,#3a1c1a);--ok:light-dark(#1f7a3f,#57c27f);--warn:light-dark(#a86400,#f0b23d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;padding-bottom:84px}
+h1,h2,h3{font-family:Archivo,Inter,sans-serif;margin:0;line-height:1.1}
+h1{font-size:32px;font-weight:800}h2{font-size:22px;font-weight:700;margin:24px 0 10px}
+.wrap{max-width:720px;margin:0 auto;padding:16px max(4vw,14px)}
+header .blaze{display:inline-block;width:22px;height:30px;vertical-align:-4px;margin-right:10px;background:linear-gradient(#fff 0 33%,var(--red) 33% 67%,#fff 67%);border:1px solid var(--line);border-radius:2px}
+.races{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:4px}
+.race{flex:none;background:var(--card);border:0;border-radius:12px;padding:8px 12px;font-size:14px;text-align:left;color:var(--ink);line-height:1.3}.race small{display:block;color:var(--mute);font-size:12px}.race.sel small{color:#fff}
+.race b{font-family:Archivo,Inter,sans-serif;font-size:22px;display:block}.race.a{box-shadow:inset 0 0 0 2px var(--red)}.race.sel{background:var(--red);color:#fff;box-shadow:none}
+.weekbar{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.weekbar .t{flex:1;text-align:center;font-weight:600}
+button{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;cursor:pointer}
+button.pri{background:var(--red);color:#fff;border-color:var(--red)}button:disabled{opacity:.5}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.tot div{background:var(--card);border-radius:12px;padding:10px}.tot b{font-family:Archivo,Inter,sans-serif;font-size:22px;display:block}.tot span{font-size:13px;color:var(--mute)}
+.meter{height:8px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--red)}
+.day{border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;position:relative}
+.day.today{border:2px solid var(--red);background:var(--soft)}
+.day.today::before{content:"";position:absolute;left:-2px;top:14px;width:6px;height:28px;background:linear-gradient(#fff 0 33%,var(--red) 33% 67%,#fff 67%)}
+.dh{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dh .d{font-weight:600}.chip{font-size:13px;padding:2px 10px;border-radius:20px;background:var(--card);border:1px solid var(--line);white-space:nowrap}
+.chip.rest{color:var(--mute)}.chip.key{background:var(--red);color:#fff;border-color:var(--red)}
+.wk{margin:8px 0 6px}.pace{font-weight:600}
+.nums{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--mute);margin-top:6px}.nums b{color:var(--ink);white-space:nowrap}
+.note{font-size:14px;color:var(--mute);margin-top:6px}
+.coros{font-size:13px;margin-top:8px;padding:6px 10px;border-radius:8px;background:var(--card)}
+.coros.miss{color:var(--warn)}.coros.ok{color:var(--ok)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+form.ed{display:grid;gap:10px;margin-top:12px}
+label{font-size:13px;color:var(--mute);display:grid;gap:4px}
+input,textarea,select{font:16px Inter,sans-serif;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+textarea{min-height:90px}.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.msg{font-size:14px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--card)}.msg.err{color:var(--red)}.msg.good{color:var(--ok)}
+.state{padding:24px;text-align:center;color:var(--mute)}
+.list .it{display:grid;grid-template-columns:9em minmax(0,1fr);gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.list .it b{font-weight:600}.list .it small{grid-column:2;color:var(--mute);font-size:14px}
+.rec{display:grid;grid-template-columns:2.2em minmax(0,1fr);gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rec .l{font-size:24px}.rec .m{font-size:14px;color:var(--mute)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;font-size:14px}td,th{border:1px solid var(--line);padding:6px 8px;vertical-align:top;max-width:22em}th{background:var(--card);position:sticky;top:0}
+.cv{padding:4px 8px;border-radius:6px}.cv.y{background:light-dark(#fff2cc,#3d3415);cursor:pointer}.cv.e{cursor:pointer;text-decoration:underline dotted}.cv.f{color:var(--ink)}
+td.y{background:light-dark(#fff2cc,#3d3415);cursor:pointer}td.e{cursor:pointer}td.f{color:var(--mute)}td.y:hover,td.e:hover{outline:2px solid var(--red);outline-offset:-2px}
+.sheetbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:14px;color:var(--mute)}.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;background:light-dark(#fff2cc,#3d3415);border:1px solid var(--line)}
+.sheetx{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:2px solid var(--red);padding:16px max(4vw,14px) calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25)}.sheetx .in{max-width:720px;margin:0 auto;display:grid;gap:10px}
+.hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;align-items:center;background:var(--card);border-radius:14px;padding:14px;margin:12px 0}
+.hero .lt{font-size:40px;line-height:1;grid-row:span 2}.hero .hb{font-weight:600}.hero .hs{font-size:14px;color:var(--mute)}.hero .acts{grid-column:1/-1;margin-top:6px}
+.sv{font-size:13px;margin-top:8px;padding:6px 10px;border-radius:8px;background:light-dark(#fff1e8,#33231a);color:light-dark(#a2430f,#ffad7a)}
+h2.sec{font-size:18px;margin:20px 0 4px}
+.an{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--card);border-left:4px solid var(--red);font-size:14px;white-space:pre-line}.an b{display:block;margin-bottom:2px}
+.tl{position:relative;display:flex;height:18px;border-radius:9px;overflow:hidden;margin:10px 0 2px}.tl span{display:block;height:100%}.tl i{position:absolute;top:-3px;bottom:-3px;width:4px;margin-left:-2px;background:var(--ink);border:2px solid var(--bg);border-radius:3px}
+.tlr{position:relative;height:18px;font-size:11px;color:var(--mute)}.tlr span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mute);margin:4px 0}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+h3.ct{font-size:16px;margin:18px 0 2px}.hs{font-size:14px;color:var(--mute);margin:2px 0 6px}
+td.n{text-align:right;white-space:nowrap}.bd{font-size:12px;padding:1px 8px;border-radius:10px;background:var(--card);color:var(--mute);white-space:nowrap;margin-left:6px}.bd.ok{color:var(--ok)}.bd.warn{color:var(--warn)}.bd.pr{background:var(--red);color:#fff}
+.fig{position:relative;margin:4px 0 8px}.fig>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+@media(max-width:600px){.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:2px 0;padding-inline-start:7.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7em;margin-inline-start:-7.5em;color:var(--mute)}.stack td:empty{display:none}}
+.cal{display:grid;grid-template-rows:repeat(7,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px;margin:8px 0}.cd{min-height:0;aspect-ratio:1;padding:0;border:0;border-radius:3px}.cd.fut{box-shadow:inset 0 0 0 1px var(--mute)}.cd.tdy{outline:2px solid var(--ink);outline-offset:1px}
+.chk{display:grid;gap:6px}.ci{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;text-align:left;padding:8px 10px;min-height:48px}.ci small{display:block;color:var(--mute);font-size:12px}.ci .bx{width:24px;height:24px;border:2px solid var(--mute);border-radius:6px;display:grid;place-items:center;font-weight:700}.ci.dn .bx{background:var(--red);border-color:var(--red);color:#fff}.ci.dn b{text-decoration:line-through;color:var(--mute)}.ci.late{border-color:var(--warn)}.ci:disabled{opacity:1}
+.fpm,.fpt{display:flex;gap:6px;flex-wrap:wrap}.fpm button,.fpt button{min-height:38px;border-radius:20px;padding:0 14px;font-size:14px}.fpm button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.fpt{border-bottom:1px solid var(--line);gap:0;margin-top:8px}.fpt button{border:0;border-radius:0;background:none;color:var(--mute);border-bottom:3px solid transparent}.fpt button.on{color:var(--ink);border-bottom-color:var(--red);font-weight:600}
+.fpn{display:flex;align-items:baseline;gap:10px;margin-top:14px}.fpn b{font-family:Archivo,Inter,sans-serif;font-size:52px;line-height:1}.fpn span{font-size:18px;font-weight:600}.fpn small{font-size:14px;color:var(--mute);font-weight:500}.fig[data-ch=fm]{touch-action:pan-y;cursor:crosshair}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:10;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--bg);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav.tabs button{border:0;background:none;font-size:14px;color:var(--mute);padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}nav.tabs button[aria-current=true]{color:var(--red);font-weight:600}
+.fresh{font-size:12px;color:var(--mute);margin-top:4px}
+@media (prefers-reduced-motion:no-preference){.day{transition:background .2s}}
+</style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span class="blaze" aria-hidden="true"></span>Бягане</h1>
+  <div class="races" id="races"></div>
+  <div class="fresh" id="fresh"></div>
+</header>
+<main id="view"><div class="state">Зареждам плана…</div></main>
+</div>
+<nav class="tabs" id="tabs">
+  <button data-v="plan" aria-current="true">План</button>
+  <button data-v="form">Форма</button>
+  <button data-v="season">Сезон</button>
+  <button data-v="rec">Възстан.</button>
+  <button data-v="sheet">Таблица</button>
+</nav>
+<script>
+window.__GAS__=true;
+(function(){
+  var API='https://script.google.com/macros/s/AKfycbxajGt7Iy4Ws7W6pElK-jzEUYXbKXRTtOIgLdbHj7TeRUAuaDqIFPGRna24x9Z0dbGp5w/exec';
+  var m=location.hash.match(/t=([0-9a-f]{32})/);
+  try{if(m){localStorage.setItem('byagane_t',m[1]);history.replaceState(null,'',location.pathname)}}catch(e){}
+  var T='';try{T=localStorage.getItem('byagane_t')||''}catch(e){}
+  if(!T){
+    document.addEventListener('DOMContentLoaded',function(){
+      document.getElementById('view').innerHTML='<div class="state"><p>Постави ключа на приложението (пратен ти от Claude):</p><input id="tk" style="width:100%;font-size:16px;padding:10px" autocomplete="off"><div class="acts"><button class="pri" id="tkok">Запази</button></div></div>';
+      document.getElementById('tkok').onclick=function(){var v=document.getElementById('tk').value.trim();if(/^[0-9a-f]{32}$/.test(v)){localStorage.setItem('byagane_t',v);location.reload()}else alert('Ключът не е верен.')};
+    });
+  }
+  function run(server,tool,input){
+    if(!T)return new Promise(function(){});
+    return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({t:T,server:server,tool:tool,input:input||{}})})
+      .then(function(r){return r.json()},function(e){throw{code:'upstream_error',message:'Няма връзка с таблицата.',server:server,retryable:true}})
+      .then(function(r){
+        if(r&&r.__error){if(r.code==='unauthorized'){try{localStorage.removeItem('byagane_t')}catch(e){}}throw{code:r.code||'tool_error',message:r.message||'',server:server}}
+        return{payload:r}});
+  }
+  var mcp={callTool:function(s,t,i){return run(s,t,i)},watchTool:function(){return function(){}},invalidate:function(){return Promise.resolve()}};
+  window.claude={use:function(n){return Promise.resolve(n==='mcp'?mcp:null)}};
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js')});
+})();
+</script>
+<script>
+{
+const SID='1My7A5ugH3J1LOmPdgr-ia2yBOGgw7w6nhR_ZCuBLUR0', GS='Google Sheets', CO='COROS';
+const view=document.getElementById('view');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let sampleFn=null, anBusy={}, anErr='';
+let fit=null, fitMsg='', sessionFitDone=false;
+let strava={}, stravaErr='', wkMsg='', recMsg='';
+let mcp=null, plan=[], season=null, recov=null, coros={}, corosErr='', cur='plan', weekStart=null, editing=null, sheetList=null, sheetSel=null, sheetVals=null;
+const W=['Нед','Пон','Вт','Ср','Чт','Пт','Съб'];
+const pd=s=>{const m=String(s||'').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);return m?new Date(+m[3],m[2]-1,+m[1]):null};
+const ymd=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+const iso=d=>ymd(d).replace(/(\d{4})(\d\d)(\d\d)/,'$1-$2-$3');
+const dm=d=>d.getDate()+'.'+(d.getMonth()+1);
+const num=s=>{const n=parseFloat(String(s??'').replace(/\s/g,'').replace(',','.'));return isNaN(n)?0:n};
+const today=new Date();today.setHours(0,0,0,0);
+const monday=d=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(0,0,0,0);return x};
+const vals=p=>(p&&(p.values||p.content?.values))||[];
+const errText=(e,srv)=>{const c=e&&e.code;
+  if(c==='needs_reauth')return `Връзката с ${srv} е изтекла – свържи я отново в claude.ai → Настройки → Connectors.`;
+  if(c==='server_not_connected'||c==='selection_required')return `${srv} не е свързан – добави го в claude.ai → Настройки → Connectors.`;
+  if(c==='not_in_manifest'||c==='approval_required'||c==='consent_required')return `Нямам разрешение за ${srv} – натисни „Опитай пак“ и разреши достъпа.`;
+  if(c==='server_unavailable'||c==='upstream_error')return `${srv} не отговаря в момента – опитай след малко.`;
+  if(c==='tool_error')return `${srv} отказа: ${String(e.message||'').slice(0,200)}`;
+  return `Грешка при ${srv} (${c||'неизвестна'}).`};
+const call=async(srv,tool,input,opt)=>(await mcp.callTool(srv,tool,input,opt)).payload;
+const txt=p=>typeof p==='string'?p:(p&&p.text)||JSON.stringify(p||'');
+
+async function loadPlan(refresh){
+  const p=await call(GS,'get_values',{spreadsheetId:SID,range:'План!A5:L193'},{cache:refresh?{refresh:true,staleTime:0,gcTime:3e5}:{staleTime:6e4,gcTime:3e5}});
+  plan=vals(p).map((r,i)=>({row:i+5,date:pd(r[0]),A:r[0]||'',B:r[1]||'',C:r[2]||'',D:r[3]||'',E:r[4]||'',F:r[5]||'',G:r[6]||'',H:r[7]||'',I:r[8]||'',J:r[9]||'',K:r[10]||'',L:r[11]||''})).filter(x=>x.date);
+  document.getElementById('fresh').textContent='Таблицата е заредена '+new Date().toLocaleTimeString('bg-BG',{hour:'2-digit',minute:'2-digit'});
+}
+async function loadSeason(){
+  const p=await call(GS,'get_values',{spreadsheetId:SID,range:'Сезон!A3:O50'},{cache:{staleTime:6e4,gcTime:3e5}});
+  season=vals(p);renderRaces();
+}
+async function loadCoros(ws){if(window.__GAS__)return;
+  corosErr='';
+  const we=new Date(ws);we.setDate(we.getDate()+6);
+  try{
+    const t=txt(await call(CO,'queryTrainingSchedule',{startDate:ymd(ws),endDate:ymd(we)}));
+    for(const b of t.split(/\n(?=\d{4}-\d\d-\d\d\n)/)){
+      const m=b.match(/^(\d{4}-\d\d-\d\d)\n([^\n]+)/);if(!m)continue;
+      const id=(b.match(/idInPlan:\s*(\d+)/)||[])[1], dist=(b.match(/Distance:\s*([\d.]+)\s*km/)||[])[1];
+      (coros[m[1]]=coros[m[1]]||[]).push({name:m[2].trim(),id,dist:dist?+dist:null});
+    }
+    for(let d=new Date(ws);d<=we;d.setDate(d.getDate()+1)){if(!coros[iso(d)])coros[iso(d)]=[]}
+  }catch(e){corosErr=errText(e,CO)}
+}
+async function loadStrava(ws){
+  stravaErr='';const we=new Date(ws);we.setDate(we.getDate()+6);
+  try{
+    const p=await call('Strava','list_activities',{range_start:iso(ws)+'T00:00:00',range_end:iso(we)+'T23:59:59',first:60,use_preferred_units:true},{cache:{staleTime:6e4,gcTime:3e5}});
+    for(let d=new Date(ws);d<=we;d.setDate(d.getDate()+1))strava[iso(d)]=[];
+    for(const a of ((p&&(p.activities||p.content?.activities))||[])){const k=String(a.start_local||'').slice(0,10);(strava[k]=strava[k]||[]).push(a)}
+  }catch(e){stravaErr=errText(e,'Strava')}
+}
+const fmtT=t=>{t=Math.round(t||0);const h=Math.floor(t/3600),m=Math.floor(t%3600/60);return h?h+':'+String(m).padStart(2,'0')+' ч':m+' мин'};
+function stravaLine(x){
+  const l=strava[iso(x.date)];if(!l||!l.length)return '';
+  return l.map(a=>{const s=a.summary||{};
+    if(/Run/.test(a.sport_type))return `<div class="sv">Strava: <b>${esc(s.distance_display||'')}</b> · ${esc(fmtT(s.moving_time))} · ${esc(s.avg_pace_display||'')}${s.elevation_gain_display?' · '+esc(s.elevation_gain_display)+' D+':''}</div>`;
+    if(a.sport_type==='WeightTraining')return `<div class="sv">Strava: силова ${esc(fmtT(s.moving_time))}</div>`;
+    return `<div class="sv">Strava: ${esc(a.sport_type)} ${esc(fmtT(s.moving_time))}</div>`}).join('');
+}
+const dmy=d=>String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
+function recToday(){return recov?recov.slice(1).find(r=>pd(r[0])&&+pd(r[0])===+today):null}
+function heroHtml(){
+  const r=recToday();
+  const advice={'🟢':'Тренирай по план.','🟡':'Дръж темпото в долната граница; ако се чувстваш тежък, пиши на Claude.','🔴':'Днес само леко или почивка – пиши на Claude за промяна.'};
+  return `<section class="hero"><div class="lt">${esc(r?.[9]||'·')}</div>
+  <div class="hb">${r?esc(advice[r[9]]||'Записано за днес.'):'Как си тази сутрин?'}</div>
+  <div class="hs">${r?`Сън ${esc(r[1]||'—')} · HRV ${esc(r[3]||'—')} (норма ${esc(r[4]||'?')}–${esc(r[5]||'?')}) · пулс ${esc(r[6]||'—')} (30 дни ${esc(r[7]||'—')})`:(window.__GAS__?'Сутринта пиши на Claude „как съм“ – той записва съня, HRV и пулса.':'Натисни „Как съм“ – взимам съня, HRV и пулса от COROS.')}</div>
+  ${window.__GAS__?'':`<div class="acts"><button class="${r?'':'pri'}" id="howami">${r?'Обнови от COROS':'Как съм'}</button></div>`}
+  ${recMsg?`<div class="msg ${/^[✗]/.test(recMsg)?'err':''}" style="grid-column:1/-1">${esc(recMsg.replace(/^[✗] /,''))}</div>`:''}</section>`;
+}
+async function howAmI(){
+  const d=ymd(today);
+  const [h,sl,rh]=await Promise.all([
+    call(CO,'querySleepHrv',{startDate:d,endDate:d},{cache:false}).then(txt),
+    call(CO,'querySleepOverview',{startDate:d,endDate:d},{cache:false}).then(txt),
+    call(CO,'queryRestingHeartRate',{days:30},{cache:false}).then(txt)]);
+  const hrv=+(h.match(/HRV Avg:\s*(\d+)/)||[])[1]||null, rg=h.match(/Normal Range:\s*(\d+)\s*-\s*(\d+)/);
+  const sm=sl.match(/Main Sleep \(asleep\):\s*(\d+)h\s*(\d+)\s*min/), sc=+(sl.match(/Sleep Score:\s*(\d+)/)||[])[1]||null;
+  const rv=[...rh.matchAll(/(\d{4}-\d\d-\d\d):\s*(\d+)\s*bpm/g)].map(m=>({d:m[1],v:+m[2]}));
+  const rToday=(rv.find(x=>x.d===iso(today))||{}).v||null, avg=rv.length?Math.round(rv.reduce((a,x)=>a+x.v,0)/rv.length):null;
+  if(!hrv&&!sm)throw{code:'nodata'};
+  const sleep=sm?sm[1]+':'+String(sm[2]).padStart(2,'0'):'';
+  const cur2=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Възстановяване!A4:A400'},{cache:false}));
+  let r=cur2.findIndex(x=>{const q=pd(x?.[0]);return q&&+q===+today});
+  r=r>=0?r+4:(()=>{let i=cur2.findIndex(x=>!String(x?.[0]??'').trim());return (i<0?cur2.length:i)+4})();
+  await call(GS,'update_values',{spreadsheetId:SID,range:`Възстановяване!A${r}:H${r}`,values:[[dmy(today),sleep,sc??'',hrv??'',rg?+rg[1]:'',rg?+rg[2]:'',rToday??'',avg??'']]},{cache:false});
+  recov=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Възстановяване!A3:K400'},{cache:false}));
+}
+async function syncWeek(){
+  const we=new Date(weekStart);we.setDate(we.getDate()+7);
+  const days=plan.filter(x=>x.date>=weekStart&&x.date<we&&x.date>=today&&!/^Почивка/.test(x.D));
+  const done=[],miss=[],fail=[];
+  for(const x of days){
+    const l=coros[iso(x.date)]||[], st=/^(Бърза|Баири|Равно темпо|Тест|Backyard|Състезание)/.test(x.D);
+    if(st){if(!l.length)miss.push(W[x.date.getDay()]+' '+dm(x.date));continue}
+    const km=num(x.G);if(l.length&&(l[0].dist==null||Math.abs(l[0].dist-km)<0.6))continue;
+    try{await pushCoros(x);done.push(W[x.date.getDay()]+' '+dm(x.date))}catch(e){fail.push(W[x.date.getDay()]+' '+dm(x.date)+': '+errText(e,CO))}
+  }
+  wkMsg=(done.length?'Обновени в COROS: '+done.join(', ')+'. ':'')+(miss.length?'Липсват структурирани тренировки ('+miss.join(', ')+') – пиши на Claude да ги сложи. ':'')+(fail.length?'Неуспешни: '+fail.join('; ')+' ':'')||'Всичко за седмицата вече съвпада с таблицата.';
+  coros={};await loadCoros(weekStart);
+}
+const hasRun=x=>(strava[iso(x.date)]||[]).some(a=>/Run/.test(a.sport_type));
+const pace=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function fmtLaps(d){
+  const gs=(d&&d.lapGroups)||[];let out='';
+  const sec=gs.find(g=>g.type===2), km=gs.find(g=>g.type===10);
+  const line=l=>`${(l.distance/100000).toFixed(2)} км · ${pace(l.time/(l.distance/100000))}/км · пулс ${l.avgHr||'?'} (макс ${l.maxHr||'?'}) · +${Math.round(l.elevGain||0)}/−${Math.round(l.totalDescent||0)} м · каданс ${l.avgCadence||'?'}`;
+  if(sec&&sec.laps.length>1&&sec.laps.length<=40)out+='Лапове/части:\n'+sec.laps.map((l,i)=>(i+1)+'. '+line(l)).join('\n')+'\n';
+  if(km)out+='По километри:\n'+km.laps.slice(0,60).map((l,i)=>(i+1)+'. '+line(l)).join('\n')+'\n';
+  return out;
+}
+async function analyzeDay(x){
+  const runs=(strava[iso(x.date)]||[]).filter(a=>/Run/.test(a.sport_type));if(!runs.length||!sampleFn)return;
+  anBusy[x.row]=true;if(cur==='plan')render();
+  try{
+    let laps='';
+    try{const rec=txt(await call(CO,'querySportRecords',{startDate:ymd(x.date),endDate:ymd(x.date)},{cache:{staleTime:3e5,gcTime:3e5}}));
+      for(const m of rec.matchAll(/LabelId:\s*(\d+)\s*\|\s*SportType:\s*(\d+)/g)){if(!/^10[0-3]$/.test(m[2]))continue;
+        const p=await call(CO,'queryActivityLapData',{labelId:m[1],sportType:+m[2]},{cache:{staleTime:3e5,gcTime:3e5}});
+        laps+=fmtLaps(typeof p==='string'?JSON.parse(p):p)}
+      const hr=rec.match(/Avg HR:\s*(\d+)/);if(hr)laps='Среден пулс (COROS): '+hr[1]+'\n'+laps;
+    }catch(_){}
+    const st=runs.map(a=>{const m=a.summary||{};return `${a.sport_type}: ${m.distance_display||''}, ${fmtT(m.moving_time)}, ${m.avg_pace_display||''}, D+ ${m.elevation_gain_display||'0'}, relative effort ${m.relative_effort??'?'}, каданс ${Math.round((m.avg_cadence||0)*2)}${a.weather&&a.weather.temperature!=null?', '+a.weather.temperature+'°C':''}`}).join('\n');
+    const paces=season?season.slice(10,21).filter(r=>r[0]).map(r=>r[0]+': '+r[2]).join('; '):'';
+    const prev=plan.find(p=>+p.date===+x.date-864e5), rr=recov?recov.slice(1).find(r=>pd(r[0])&&+pd(r[0])===+x.date):null;
+    const prompt=`Ти си треньор на български ултрабегач (основна цел Ultrabalaton 208 км на 23.04.2027). Анализирай бягането му спрямо плана за деня.
+Правила: пиши на български, кратко (до 110 думи), обикновен текст без markdown, точно 3 реда, започващи с „Изпълнение:“, „Оценка:“ и „Следващия път:“. Тренировките му се задават само по темпо и усилие, никога по пулс – пулса ползвай само като знак за умора или усилие. Ползвай само дадените данни, не измисляй. При хълмист терен съди по усилието, не по суровото темпо. Почивките между повторенията са лек бяг 7:00–7:30.
+Неговите темпа: ${paces}
+План за ${dmy(x.date)}: ${x.D} | ${x.E} | темпо ${x.F} | ${x.G} км | D+ ${x.H} м${x.K?' | бележка: '+x.K:''}
+Предния ден: ${prev?prev.D+(num(prev.I)?' ('+prev.I+' км реално)':''):'—'}
+Сутринта: ${rr?`сън ${rr[1]}, HRV ${rr[3]} (норма ${rr[4]}–${rr[5]}), пулс в покой ${rr[6]} (30 дни ${rr[7]}), светофар ${rr[9]||'?'}`:'няма данни'}
+Strava: ${st}
+COROS:
+${laps||'няма лапове'}`;
+    const {text}=await sampleFn(prompt.slice(0,60000));
+    const t=text.trim();
+    await call(GS,'update_values',{spreadsheetId:SID,range:'План!L'+x.row,values:[[/^[=+]/.test(t)?"'"+t:t]]},{cache:false});
+    x.L=t;anErr='';
+  }catch(e){
+    if(e&&(e.code==='not_granted'||e.code==='sampling_disabled'||e.code==='not_declared'||e.code==='capability_disabled'))sampleFn=null;
+    anErr=e&&e.code==='rate_limited'?'Анализът е на пауза – лимитът за използване е достигнат, опитай по-късно.':e&&e.code==='not_granted'?'Анализът е изключен, защото не е разрешен достъп до Claude.':'Анализът не успя ('+(e&&e.code||'грешка')+').';
+  }
+  delete anBusy[x.row];if(cur==='plan')render();
+}
+let autoDone=new Set();
+async function autoAnalyze(){
+  if(!sampleFn)return;
+  const from=new Date(today);from.setDate(from.getDate()-6);
+  const c=plan.filter(x=>x.date>=from&&x.date<=today&&!x.L&&hasRun(x)&&!autoDone.has(x.row)).sort((a,b)=>b.date-a.date).slice(0,3);
+  for(const x of c){autoDone.add(x.row);await analyzeDay(x);if(!sampleFn)break}
+}
+async function loadFitness(){if(window.__GAS__)return;
+  try{
+    const t=txt(await call(CO,'queryFitnessAssessmentOverview',{},{cache:{staleTime:36e5,gcTime:36e5}}));
+    const g=re=>(t.match(re)||[])[1]||'';
+    fit={vo2:g(/VO2max:\s*(\d+)/),lvl:g(/Running Level:\s*(\d+)/),thr:g(/Threshold Pace:\s*([\d:]+)/),k5:g(/5 km Prediction:\s*([\d:]+)/),k10:g(/10 km Prediction:\s*([\d:]+)/),hm:g(/Half Marathon Prediction:\s*([\d:]+)/),m:g(/\nMarathon Prediction:\s*([\d:]+)/)};
+    if(!fit.vo2){fit=null;return}
+    const cur=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Сезон!C24'},{cache:false}));
+    const old=String(cur?.[0]?.[0]??'');
+    const desc=`От COROS, обновява се само (${dmy(today)}) · Running Level ${fit.lvl} · праг по COROS ${fit.thr} · прогнози 5 км ${fit.k5} · 10 км ${fit.k10} · полумаратон ${fit.hm} · маратон ${fit.m}`;
+    if(old!==fit.vo2){
+      await call(GS,'update_values',{spreadsheetId:SID,range:'Сезон!C24:E24',values:[[fit.vo2,null,desc]]},{cache:false});
+      if(old&&old!==fit.vo2)fitMsg=`VO2max по COROS: ${old} → ${fit.vo2}`;
+    }
+    fit.old=old;
+  }catch(_){}
+}
+function fitHtml(){
+  if(!fit)return '';
+  return `<section class="hero" style="grid-template-columns:minmax(0,1fr)"><div class="hb">Форма по COROS: VO2max ${esc(fit.vo2)}${fit.old&&fit.old!==fit.vo2?` (беше ${esc(fit.old)})`:''} · Running Level ${esc(fit.lvl)}</div>
+  <div class="hs">Праг по COROS ${esc(fit.thr)} (по теста ти: 4:50) · 5 км ${esc(fit.k5)} · 10 км ${esc(fit.k10)} · полумаратон ${esc(fit.hm)} · маратон ${esc(fit.m)}</div></section>`;
+}
+// ---------- charts ----------
+let charts={}, ros=[], weeks=null, fcast=null, raceSel=null, raceVals=null, fcLogged=false;
+const hhmm=h=>{const t=Math.round(h*60);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+const durH=s=>{const m=String(s||'').match(/^(\d+):(\d\d)(?::(\d\d))?$/);return m?+m[1]+m[2]/60+(m[3]?m[3]/3600:0):NaN};
+function mountCharts(){
+  for(const r of ros)r.disconnect();ros=[];
+  for(const el of document.querySelectorAll('.fig[data-ch]')){
+    const def=charts[el.dataset.ch];if(!def)continue;
+    const draw=()=>{const W=el.clientWidth,H=el.clientHeight;if(!W||!H)return;el.querySelector('svg').innerHTML=def.kind==='bar'?barSvg(def,W,H):def.kind==='area'?areaSvg(def,W,H):lineSvg(def,W,H)};
+    draw();const ro=new ResizeObserver(draw);ro.observe(el);ros.push(ro);
+    if(def.kind==='area'){const mv=e=>{const r=el.getBoundingClientRect(),px=(e.touches?e.touches[0].clientX:e.clientX)-r.left;def.hover=def.idxAt?def.idxAt(px):null;draw()};
+      el.addEventListener('pointermove',mv);el.addEventListener('pointerdown',mv);el.addEventListener('touchmove',mv,{passive:true});el.addEventListener('pointerleave',()=>{def.hover=null;draw()});}
+  }
+}
+function areaSvg(d,W,H){
+  const P=d.pts;if(!P.length)return '';
+  const pl=40,pr=14,pt=46,pb=26,iw=W-pl-pr,ih=H-pt-pb;
+  const x0=P[0].x,x1=P[P.length-1].x||x0+1;let y0=Math.min(...P.map(p=>p.y)),y1=Math.max(...P.map(p=>p.y));
+  if(d.zero){y0=Math.min(y0,0);y1=Math.max(y1,0)}const sp=(y1-y0)||1;y0-=sp*.15;y1+=sp*.12;if(!d.zero&&y0<0&&Math.min(...P.map(p=>p.y))>=0)y0=0;
+  const X=x=>pl+(x-x0)/((x1-x0)||1)*iw,Y=y=>pt+(1-(y-y0)/(y1-y0))*ih;
+  d.idxAt=px=>{let b=0,bd=1e9;P.forEach((p,i)=>{const dd=Math.abs(X(p.x)-px);if(dd<bd){bd=dd;b=i}});return b};
+  let g='<defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--red)" stop-opacity=".45"/><stop offset="1" stop-color="var(--red)" stop-opacity=".05"/></linearGradient></defs>';
+  for(let i=0;i<=4;i++){const v=y0+(y1-y0)*i/4,yy=Y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--mute)">${esc(d.fmt(v))}</text>`}
+  if(d.zero&&y0<0&&y1>0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mute)"/>`;
+  const past=P.filter(p=>!p.fut),fut=P.filter((p,i)=>p.fut||(P[i+1]&&P[i+1].fut&&!p.fut));
+  const path=a=>a.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+','+Y(p.y).toFixed(1)).join('');
+  const base=Y(d.zero?0:y0);
+  if(past.length){g+=`<path d="${path(past)}L${X(past[past.length-1].x)},${base}L${X(past[0].x)},${base}Z" fill="url(#ag)"/><path d="${path(past)}" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linejoin="round"/>`}
+  if(fut.length>1){g+=`<path d="${path(fut)}L${X(fut[fut.length-1].x)},${base}L${X(fut[0].x)},${base}Z" fill="var(--red)" opacity=".07"/><path d="${path(fut)}" fill="none" stroke="var(--red)" stroke-width="2" stroke-dasharray="5 4" opacity=".7"/>`}
+  const step=Math.max(1,Math.ceil(P.length/40));
+  P.forEach((p,i)=>{if(i%step===0&&!p.fut)g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3.2" fill="var(--bg)" stroke="var(--red)" stroke-width="2"/>`});
+  const nt=W<520?3:5;for(let i=0;i<=nt;i++){const v=x0+(x1-x0)*i/nt;g+=`<text x="${X(v)}" y="${H-6}" text-anchor="${i===0?'start':i===nt?'end':'middle'}" font-size="11" fill="var(--mute)">${esc(dm(new Date(v)))}</text>`}
+  const hi=d.hover!=null?d.hover:d.mark;
+  if(hi!=null&&P[hi]){const p=P[hi],cx=X(p.x),cy=Y(p.y),lab=d.fmt(p.y)+(d.hover!=null?' · '+dm(new Date(p.x)):''),bw=Math.max(46,lab.length*8+16),bx=Math.min(W-pr-bw,Math.max(pl,cx-bw/2));
+    g+=`<line x1="${cx}" x2="${cx}" y1="${pt-8}" y2="${pt+ih}" stroke="var(--red)" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="12" fill="var(--red)" opacity=".2"/><circle cx="${cx}" cy="${cy}" r="6" fill="var(--red)"/>
+    <rect x="${bx}" y="${pt-40}" width="${bw}" height="30" rx="5" fill="var(--red)"/><text x="${bx+bw/2}" y="${pt-20}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">${esc(lab)}</text>`}
+  return g;
+}
+function lineSvg(d,W,H){
+  const pl=44,pr=10,pt=12,pb=24,iw=W-pl-pr,ih=H-pt-pb,narrow=W<520;
+  const all=d.series.flatMap(s=>s.pts.concat((s.band||[]).flatMap(b=>[{x:b.x,y:b.lo},{x:b.x,y:b.hi}])));
+  if(!all.length)return '';
+  let x0=Math.min(...all.map(p=>p.x)),x1=Math.max(...all.map(p=>p.x));if(x0===x1){x0-=d.xPad||864e5;x1+=d.xPad||864e5}
+  let y0=d.yMin??Math.min(...all.map(p=>p.y)),y1=d.yMax??Math.max(...all.map(p=>p.y));if(y0===y1){y0-=1;y1+=1}const yp=(y1-y0)*.08;if(d.yMin==null)y0-=yp;if(d.yMax==null)y1+=yp;
+  const X=x=>pl+(x-x0)/(x1-x0)*iw, Y=y=>pt+(1-(y-y0)/(y1-y0))*ih;
+  let g='';
+  for(let i=0;i<=3;i++){const v=y0+(y1-y0)*i/3,yy=Y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--mute)">${esc(d.fmtY(v))}</text>`}
+  const nt=narrow?2:4;for(let i=0;i<=nt;i++){const v=x0+(x1-x0)*i/nt;g+=`<text x="${X(v)}" y="${H-6}" text-anchor="${i===0?'start':i===nt?'end':'middle'}" font-size="11" fill="var(--mute)">${esc(d.fmtX?d.fmtX(v):dm(new Date(v)))}</text>`}
+  if(d.zero&&y0<0&&y1>0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mute)" stroke-dasharray="2 3"/>`;
+  if(d.todayLine){const tx=X(+today);if(tx>pl&&tx<W-pr)g+=`<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${pt+ih}" stroke="var(--mute)"/><text x="${tx+4}" y="${pt+10}" font-size="10" fill="var(--mute)">днес</text>`}
+  for(const s of d.series){
+    if(s.band&&s.band.length){const up=s.band.map(b=>`${X(b.x)},${Y(b.hi)}`).join(' '),dn=s.band.slice().reverse().map(b=>`${X(b.x)},${Y(b.lo)}`).join(' ');g+=`<polygon points="${up} ${dn}" fill="${s.color}" opacity=".12"/>`}
+    if(s.pts.length){g+=`<polyline points="${s.pts.map(p=>X(p.x)+','+Y(p.y)).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.2" ${s.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`;
+      if(s.pts.length<=45&&!d.noDots)g+=s.pts.map(p=>`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3" fill="${s.color}"/>`).join('');}
+  }
+  return g;
+}
+function barSvg(d,W,H){
+  const pl=36,pr=6,pt=18,pb=24,iw=W-pl-pr,ih=H-pt-pb,n=d.cats.length;if(!n)return '';
+  const mx=Math.max(...d.cats.map(c=>Math.max(c.plan,c.real||0)))*1.05||1, bw=iw/n, Y=v=>pt+ih*(1-v/mx);
+  let g='';for(let i=0;i<=2;i++){const v=mx*i/2,yy=Y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-5}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--mute)">${Math.round(v)}</text>`}
+  d.cats.forEach((c,i)=>{const x=pl+i*bw;
+    g+=`<rect x="${x+bw*.12}" y="${Y(c.plan)}" width="${bw*.76}" height="${ih-(Y(c.plan)-pt)}" fill="${c.race?'var(--red)':'var(--ink)'}" opacity="${c.race?.25:.13}" rx="2"/>`;
+    if(c.real)g+=`<rect x="${x+bw*.28}" y="${Y(c.real)}" width="${bw*.44}" height="${ih-(Y(c.real)-pt)}" fill="var(--red)" rx="2"/>`;
+    if(c.cur)g+=`<rect x="${x}" y="${pt-14}" width="${bw}" height="${ih+14}" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="3 3" rx="3"/><text x="${x+bw/2}" y="${pt-4}" text-anchor="middle" font-size="10" fill="var(--red)">сега</text>`;
+    if(i%(W<520?6:4)===0)g+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--mute)">${esc(c.label)}</text>`;
+  });
+  return g;
+}
+const fig=(id,h)=>`<div class="fig" data-ch="${id}" style="height:${h||200}px"><svg role="img" aria-label="графика"></svg></div>`;
+// ---------- season: timeline + volume + forecasts ----------
+const phaseGroup=p=>/Taper/.test(p)?['Taper','#8a8f98']:/Възстанов|След|Връщане/.test(p)?['Възстановяване','#9bb8d3']:/пик/.test(p)?['Пик','#d62d20']:/специфична|подготовка/.test(p)?['Специфична','#e8875c']:/Изграждане/.test(p)?['Изграждане','#c9a227']:['База','#4f6d8a'];
+async function loadWeeks(){weeks=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'План!M5:T31'},{cache:{staleTime:6e4,gcTime:3e5}})).map((r,i)=>{r.row=i+5;return r}).filter(r=>pd(r[0]))}
+async function loadFcast(){fcast=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Прогнози!A1:H1000'},{cache:{staleTime:6e4,gcTime:3e5}}))}
+async function logForecast(){
+  if(fcLogged||!season)return;fcLogged=true;
+  try{
+    const f=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Прогнози!A1:H1000'},{cache:false}));
+    const head=(f[0]||['Дата']).slice();const last=f.length>1?f[f.length-1]:null;
+    if(last&&pd(last[0])&&+pd(last[0])===+today){fcast=f;return}
+    const races=season.slice(1,7).filter(r=>r[1]&&r[9]&&r[9]!=='няма таб');
+    for(const r of races)if(!head.includes(r[1]))head.push(r[1]);
+    const row=head.map((h,i)=>{if(i===0)return dmy(today);const r=races.find(x=>x[1]===h);if(!r)return null;const v=String(r[9]);
+      if(/обиколк/.test(v))return num(v);if(/км/.test(v))return num(v);return /^\d+:\d\d/.test(v)?v:null});
+    await call(GS,'update_values',{spreadsheetId:SID,range:'Прогнози!A1:'+colL(head.length-1)+'1',values:[head]},{cache:false});
+    await call(GS,'update_values',{spreadsheetId:SID,range:`Прогнози!A${f.length+1}:${colL(head.length-1)}${f.length+1}`,values:[row]},{cache:false});
+    fcast=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Прогнози!A1:H1000'},{cache:false}));
+  }catch(_){}
+}
+function seasonTop(){
+  if(!weeks)return '<div class="state">Зареждам сезона…</div>';
+  const races=season?season.slice(1,7).filter(r=>r[1]&&pd(r[0])).map(r=>({d:pd(r[0]),n:r[1]})):[];
+  const curW=monday(today);let segs=[];
+  weeks.forEach(w=>{const [g,c]=phaseGroup(w[1]);const l=segs[segs.length-1];if(l&&l.g===g)l.n++;else segs.push({g,c,n:1})});
+  const tot=weeks.length, ci=weeks.findIndex(w=>+pd(w[0])===+curW);
+  const ua=races.find(r=>/Ultrabalaton/.test(r.n))||races[0];
+  const cats=weeks.map(w=>{const d=pd(w[0]),e=new Date(d);e.setDate(e.getDate()+7);return{label:dm(d),plan:num(w[2]),real:num(w[3]),cur:+d===+curW,race:races.some(r=>r.d>=d&&r.d<e)}});
+  charts.vol={kind:'bar',cats};
+  const legend=[...new Map(segs.map(s=>[s.g,s.c])).entries()];
+  const doneKm=weeks.reduce((s,w)=>s+num(w[3]),0);
+  return `<h2>Пътят до ${esc(ua?ua.n:'старта')}</h2>
+  <p class="hs">${ua?`${Math.round((ua.d-today)/864e5)} дни · `:''}${ci>=0?`седмица ${ci+1} от ${tot} · `:''}${doneKm.toFixed(0)} км изминати по плана</p>
+  <div class="tl">${segs.map(s=>`<span style="flex:${s.n};background:${s.c}" title="${esc(s.g)}"></span>`).join('')}${ci>=0?`<i style="left:${((ci+.5)/tot*100).toFixed(2)}%"></i>`:''}</div>
+  <div class="tlr">${races.map(r=>{const i=weeks.findIndex(w=>{const d=pd(w[0]),e=new Date(d);e.setDate(e.getDate()+7);return r.d>=d&&r.d<e});return i<0?'':`<span style="left:${((i+.5)/tot*100).toFixed(2)}%">${esc(r.n.split(' ')[0])}</span>`}).join('')}</div>
+  <div class="lg">${legend.map(([g,c])=>`<span><i style="background:${c}"></i>${esc(g)}</span>`).join('')}</div>
+  <h3 class="ct">Седмичен обем, км</h3><div class="lg"><span><i style="background:var(--ink);opacity:.25"></i>план</span><span><i style="background:var(--red)"></i>реално</span><span><i style="background:var(--red);opacity:.3"></i>седмица със старт</span></div>
+  ${fig('vol',190)}`;
+}
+function fcastHtml(){
+  if(!fcast||fcast.length<2)return '<h2>Прогнозите във времето</h2><p class="note">Записвам прогнозите всеки ден, в който отвориш приложението – графиките ще се пълнят оттук нататък.</p>';
+  const head=fcast[0],rows=fcast.slice(1).filter(r=>pd(r[0]));let out='<h2>Прогнозите във времето</h2>';
+  const races=season?season.slice(1,7).filter(r=>r[1]):[];
+  for(let j=1;j<head.length;j++){
+    const r=races.find(x=>x[1]===head[j]);const type=r?r[3]:'';
+    const pts=rows.map(x=>({x:+pd(x[0]),y:type==='Обикновено'?durH(x[j]):num(x[j])})).filter(p=>p.y&&!isNaN(p.y));
+    if(!pts.length)continue;
+    const unit=type==='Обикновено'?'време до финала':type==='Backyard'?'обиколки':'км за '+(r&&r[6]?r[6]+' ч':'времето');
+    const lastV=pts[pts.length-1].y, firstV=pts[0].y, diff=lastV-firstV;
+    const fmt=type==='Обикновено'?hhmm:(v=>String(Math.round(v*10)/10).replace('.',','));
+    const better=type==='Обикновено'?diff<0:diff>0;
+    charts['fc'+j]={kind:'line',series:[{pts,color:'var(--red)'}],fmtY:fmt};
+    out+=`<h3 class="ct">${esc(head[j])} · ${esc(unit)}</h3><p class="hs"><b style="color:var(--ink);font-size:20px">${esc(fmt(lastV))}</b>${pts.length>1&&Math.abs(diff)>1e-6?` · <span style="color:${better?'var(--ok)':'var(--warn)'}">${better?'▲ по-добре':'▼ по-слабо'} с ${esc(fmt(Math.abs(diff)))} от ${esc(dm(new Date(pts[0].x)))}</span>`:` · ${pts.length} ${pts.length===1?'запис':'записа'}`}${type==='Обикновено'?' · по-ниско е по-бързо':''}</p>${pts.length>1?fig('fc'+j,170):''}`;
+  }
+  return out;
+}
+// ---------- recovery charts ----------
+function recCharts(){
+  const rows=recov.slice(1).filter(r=>pd(r[0])).slice(-30);
+  if(rows.length<2)return '';
+  const P=(i)=>rows.map(r=>({x:+pd(r[0]),y:num(r[i])})).filter(p=>p.y);
+  charts.hrv={kind:'line',series:[{pts:P(3),color:'var(--red)',band:rows.filter(r=>num(r[4])).map(r=>({x:+pd(r[0]),lo:num(r[4]),hi:num(r[5])}))}],fmtY:v=>Math.round(v)};
+  charts.rhr={kind:'line',series:[{pts:P(7),color:'var(--mute)',dash:true},{pts:P(6),color:'var(--red)'}],fmtY:v=>Math.round(v)};
+  charts.slp={kind:'line',series:[{pts:rows.map(r=>({x:+pd(r[0]),y:durH(r[1])})).filter(p=>!isNaN(p.y)),color:'var(--red)'}],fmtY:hhmm};
+  return `<h3 class="ct">HRV (ms)</h3><div class="lg"><span><i style="background:var(--red)"></i>HRV</span><span><i style="background:var(--red);opacity:.15"></i>нормата ти</span></div>${fig('hrv',170)}
+  <h3 class="ct">Пулс в покой</h3><div class="lg"><span><i style="background:var(--red)"></i>сутрин</span><span><i style="background:var(--mute)"></i>средно за 30 дни</span></div>${fig('rhr',150)}
+  <h3 class="ct">Сън</h3>${fig('slp',150)}`;
+}
+// ---------- race day ----------
+async function openRace(n){raceSel=n;raceVals=null;cur='race';for(const b of document.querySelectorAll('#tabs button'))b.setAttribute('aria-current','false');render();
+  try{raceVals=vals(await call(GS,'get_values',{spreadsheetId:SID,range:"'"+n.replace(/'/g,"''")+"'!B1:J300"},{cache:{staleTime:6e4,gcTime:3e5}}))}catch(e){view.innerHTML=`<div class="state">${esc(errText(e,GS))}</div>`;return}
+  if(cur==='race'&&raceSel===n)render();window.scrollTo(0,0)}
+function renderRace(){
+  if(!raceVals){view.innerHTML=`<div class="state">Зареждам ${esc(raceSel)}…</div>`;return}
+  const R=raceVals, lab=l=>{for(const r of R)for(const c of [0,3,6])if(r[c]===l)return r[c+1]||'';return ''};
+  const find=re=>R.findIndex(r=>re.test(String(r[0]||'')));
+  const iS=find(/^ТРАСЕ И ТЕМПО/), iD=find(/^DROP BAG/), iG=find(/^КОГА КОЙ ГЕЛ/);
+  const seg=[];if(iS>=0)for(let i=iS+2;i<R.length;i++){const r=R[i];if(!r||!num(r[4]))break;seg.push(r)}
+  const drop=[];if(iD>=0)for(let i=iD+2;i<R.length;i++){const r=R[i];if(!r||!r[0])break;drop.push(r);if(r[0]==='Общо')break}
+  const gels=[];if(iG>=0)for(let i=iG+2;i<R.length;i++){const r=R[i];if(!r||!r[0])break;gels.push(r)}
+  const type=lab('Тип');
+  if(seg.length>1){charts.pace={kind:'line',series:[{pts:seg.map(r=>({x:(num(r[0])+num(r[1]))/2,y:durH(r[7])*60/num(r[4])})),color:'var(--red)'}],fmtY:v=>pace(v*60),fmtX:v=>Math.round(v)+' км',xPad:1}}
+  const every=seg.length>40?Math.ceil(seg.length/30):1;
+  view.innerHTML=`<h2>${esc(raceSel)} · ден на старта</h2>
+  <div class="tot"><div><span>Време за плана</span><b>${esc(lab('Време за плана')||'—')}</b><span>${esc(lab('Прогноза от Strava')?'прогноза '+lab('Прогноза от Strava'):'')}</span></div><div><span>Среден пейс</span><b>${esc(lab('Среден пейс (мин/км)')||'—')}</b><span>${esc(type)}</span></div><div><span>Гелове</span><b>${esc(lab('Брой гелове')||'—')}</b><span>${esc(lab('Въглехидрати реално (г/ч)')||'?')} г/ч</span></div></div>
+  <div class="acts"><button data-raceedit="1">Цели и всички данни</button></div>
+  ${seg.length>1&&type!=='Backyard'?`<h3 class="ct">Темпо по трасето</h3>${fig('pace',170)}`:''}
+  ${seg.length?`<h3 class="ct">${type==='Backyard'?'Обиколки':'Участъци'}</h3><div class="scroll"><table class="stack"><thead><tr><th>${type==='Backyard'?'Обиколка':'Км'}</th><th>D+</th><th>Участък</th><th>Общо време</th></tr></thead><tbody>${seg.filter((r,i)=>i%every===0||i===seg.length-1).map((r,i)=>`<tr><td>${type==='Backyard'?esc(String(seg.indexOf(r)+1))+' · до '+esc(r[1])+' км':esc(r[0])+'–'+esc(r[1])}</td><td class="n">${esc(r[2])}</td><td class="n">${esc(r[7])}</td><td class="n"><b>${esc(r[8])}</b></td></tr>`).join('')}</tbody></table></div>${every>1?`<p class="note">Показан е всеки ${every}-и участък; всички са в листа.</p>`:''}`:''}
+  ${gels.length?`<h3 class="ct">Кога кой гел</h3><div class="scroll"><table class="stack"><thead><tr><th>#</th><th>Време</th><th>Км</th><th>Гел</th><th>Носиш от</th></tr></thead><tbody>${gels.map(r=>`<tr><td>${esc(r[0])}</td><td class="n"><b>${esc(r[1])}</b></td><td class="n">${esc(r[2])}</td><td>${esc(r[3])}${num(r[7])?' · кофеин':''}</td><td>${esc(r[8])}</td></tr>`).join('')}</tbody></table></div>`:''}
+  ${drop.length?`<h3 class="ct">Drop bag-ове</h3><div class="scroll"><table class="stack"><thead><tr><th>Пункт</th><th>Км</th><th>Пристигаш</th><th>Гела</th><th>Резерв</th></tr></thead><tbody>${drop.map(r=>`<tr><td>${esc(r[0])}</td><td class="n">${esc(r[1])}</td><td class="n">${esc(r[2])}</td><td class="n"><b>${esc(r[6])}</b></td><td class="n">${esc(r[7])}</td></tr>`).join('')}</tbody></table></div>`:''}`;
+}
+// ---------- day-card touches ----------
+const typeColor=d=>/^Почивка/.test(d)?'transparent':/^(Бърза|Тест|Състезание)/.test(d)?'#d62d20':/^Баири/.test(d)?'#c77700':/^Равно темпо/.test(d)?'#e8875c':/^(Дълго|Backyard)/.test(d)?'#2f6db5':/^Средно дълго/.test(d)?'#4f86c6':'#8a8f98';
+function doneBadge(x){
+  if(x.date>=today||/^Почивка/.test(x.D)||!num(x.G))return '';
+  const r=num(x.I),p=num(x.G);
+  if(r>=p*.8)return '<span class="bd ok">✓ изпълнено</span>';
+  if(r>0)return `<span class="bd warn">частично ${Math.round(r/p*100)}%</span>`;
+  return '<span class="bd">пропуснато</span>';
+}
+function prBadge(x){const n=(strava[iso(x.date)]||[]).reduce((s,a)=>s+((a.summary||{}).pr_count||0),0);return n?`<span class="bd pr">PR ×${n}</span>`:''}
+
+// ---------- form (fitness/fatigue/form) ----------
+let hist=null, histErr='', checks=null, repBusy={};
+async function loadHistory(){
+  histErr='';const from=new Date(today);from.setDate(from.getDate()-150);
+  try{
+    let after=null,acts=[];
+    for(let i=0;i<4;i++){
+      const p=await call('Strava','list_activities',{range_start:iso(from)+'T00:00:00',range_end:iso(today)+'T23:59:59',first:100,ordering:'StartDateLocalAsc',...(after?{after}:{})},{cache:{staleTime:36e5,gcTime:36e5}});
+      const a=(p&&(p.activities||p.content?.activities))||[];acts=acts.concat(a);
+      const more=p&&(p.has_next_page??p.content?.has_next_page);after=p&&(p.end_cursor??p.content?.end_cursor);if(!more||!after)break;
+    }
+    const load={};let km42=0,re42=0;const c42=new Date(today);c42.setDate(c42.getDate()-42);
+    for(const a of acts){const k=String(a.start_local||'').slice(0,10),s=a.summary||{};load[k]=(load[k]||0)+(s.relative_effort||0);
+      if(/Run/.test(a.sport_type)&&new Date(k)>=c42&&s.relative_effort){km42+=(s.distance||0)/1000;re42+=s.relative_effort}}
+    hist={from,load,rePerKm:km42?re42/km42:9};
+    writeFormSheet().catch(()=>{});
+  }catch(e){histErr=errText(e,'Strava')}
+}
+let formWritten=false;
+async function writeFormSheet(){
+  if(formWritten||!plan.length)return;formWritten=true;
+  const h=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Форма!A3'},{cache:false}));
+  {const v=String(h?.[0]?.[0]||'');if(v.includes(dmy(today))&&v.includes('v3'))return;}
+  const s=pmc();if(!s)return;const st=+plan[0].date;
+  const rows=s.filter(p=>p.x>=st&&!p.fut).map(p=>[dmy(new Date(p.x)),Math.round(p.L),Math.round(p.ctl),Math.round(p.atl),Math.round(p.pct)/100,p.fut?'по плана':'реално (Strava)']);
+  while(rows.length<188)rows.push(['','','','','','']);
+  await call(GS,'update_values',{spreadsheetId:SID,range:'Форма!A11:F'+(rows.length+10),values:rows},{cache:false});
+  const t=new Date();await call(GS,'update_values',{spreadsheetId:SID,range:'Форма!A3',values:[['Обновено: '+dmy(today)+' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+' (от приложението, v3)']]},{cache:false});
+}
+const typeMult=d=>/^(Бърза|Тест)/.test(d)?1.35:/^Баири/.test(d)?1.3:/^Равно темпо/.test(d)?1.25:/^Състезание/.test(d)?1.1:/Възстановително/.test(d)?.85:/^(Дълго|Средно дълго|Backyard)/.test(d)?1:.95;
+function pmc(){
+  if(!hist||!plan.length)return null;
+  const end=plan[plan.length-1].date, out=[];let ctl=0,atl=0;
+  const pl={};for(const x of plan)pl[iso(x.date)]=x;
+  for(let d=new Date(hist.from);d<=end;d.setDate(d.getDate()+1)){
+    const k=iso(d),x=pl[k];let L;
+    if(d<today||(+d===+today&&hist.load[k]))L=hist.load[k]||0;
+    else L=x?num(x.G)*hist.rePerKm*typeMult(x.D):0;
+    const c0=ctl,a0=atl,tsb=c0-a0;out.push({x:+d,ctl:c0,atl:a0,tsb,pct:c0>1?tsb/c0*100:0,L,fut:!(d<today||(+d===+today&&hist.load[k]))});
+    ctl+=(L-ctl)/42;atl+=(L-atl)/7;
+  }
+  return out;
+}
+const formLabel=t=>t<-30?['високо натоварване – риск','var(--red)']:t<-10?['тренираш оптимално','var(--ok)']:t<5?['неутрално','var(--mute)']:t<=25?['свеж – готов за старт','var(--ok)']:['прекалено отпочинал','var(--warn)'];
+const pc=v=>(v>0?'+':'')+Math.round(v)+'%';
+let fmMetric='ctl',fmRange='3m';
+const FM={ctl:['Фитнес','Натоварването ти, натрупано за ~6 седмици.',v=>String(Math.round(v))],atl:['Умора','Натоварването от последната седмица.',v=>String(Math.round(v))],pct:['Форма','Колко си свеж: (фитнес − умора) като % от фитнеса.',v=>(v>0?'+':'')+Math.round(v)+'%']};
+function fitPanel(s){
+  const [ttl,sub,fmt]=FM[fmMetric];const st=plan.length?+plan[0].date:+today;
+  const from=fmRange==='1m'?+today-30*864e5:fmRange==='3m'?+today-90*864e5:fmRange==='5m'?s[0].x:st;
+  const to=+today;
+  const pts=s.filter(p=>p.x>=from&&p.x<=to).map(p=>({x:p.x,y:p[fmMetric],fut:p.fut}));
+  if(!pts.length)return '';
+  const ti=pts.findIndex(p=>p.x===+today),cur=pts[ti>=0?ti:pts.length-1].y,first=pts[0].y,dif=cur-first,pctc=first?dif/Math.abs(first)*100:0;
+  charts.fm={kind:'area',pts,fmt,zero:fmMetric==='pct',mark:ti>=0?ti:pts.length-1};
+  const chg=fmMetric==='pct'?`${dif>=0?'▲':'▼'} ${Math.abs(Math.round(dif))} т.`:`${dif>=0?'▲':'▼'} ${Math.abs(pctc).toFixed(0)}% <small>${dif>=0?'+':'−'}${Math.abs(Math.round(dif))} т.</small>`;
+  const tabs=[['1m','1 месец'],['3m','3 месеца'],['5m','5 месеца'],['season','Този сезон']];
+  return `<section class="fp"><div class="fpm">${Object.entries(FM).map(([k,v])=>`<button class="${k===fmMetric?'on':''}" data-fm="${k}">${esc(v[0])}</button>`).join('')}</div>
+  <h2 style="margin-top:14px">${esc(ttl)}</h2><p class="hs">${esc(sub)}</p>
+  <div class="fpt">${tabs.map(([k,l])=>`<button class="${k===fmRange?'on':''}" data-fr="${k}">${esc(l)}</button>`).join('')}</div>
+  <div class="fpn"><b>${esc(fmt(cur))}</b><span>${chg}</span></div><p class="hs">${fmRange==='season'?'от началото на сезона (23.11)':'за последните '+(fmRange==='1m'?'30':fmRange==='3m'?'90':'150')+' дни'} · докосни графиката за стойност</p>
+  ${fig('fm',300)}</section>`;
+}
+function formHtml(){
+  if(histErr)return `<div class="msg err">${esc(histErr)}</div>`;
+  const s0=pmc();if(!s0)return '<div class="state">Смятам натоварването от Strava…</div>';const s=s0.filter(p=>!p.fut);
+  const t=s.find(p=>p.x===+today)||s[s.length-1];
+  const past=s.filter(p=>!p.fut),fut=s.filter(p=>p.fut||p.x===+today);
+  const races=season?season.slice(1,7).filter(r=>r[1]&&pd(r[0])).map(r=>({d:pd(r[0]),n:r[1]})).filter(r=>r.d>=today):[];
+  charts.pmc={kind:'line',todayLine:true,series:[{pts:past.map(p=>({x:p.x,y:p.ctl})),color:'var(--ink)'},{pts:fut.map(p=>({x:p.x,y:p.ctl})),color:'var(--ink)',dash:true},{pts:past.map(p=>({x:p.x,y:p.atl})),color:'#e8875c'},{pts:fut.map(p=>({x:p.x,y:p.atl})),color:'#e8875c',dash:true}],fmtY:v=>Math.round(v),noDots:true};
+  charts.tsb={kind:'line',todayLine:true,series:[{pts:past.map(p=>({x:p.x,y:p.pct})),color:'var(--red)'},{pts:fut.map(p=>({x:p.x,y:p.pct})),color:'var(--red)',dash:true}],fmtY:v=>Math.round(v)+'%',zero:true,noDots:true};
+  const [lb,lc]=formLabel(t.pct);
+  return `${fitPanel(s)}<h2>Днес</h2>
+  <div class="tot"><div><span>Фитнес</span><b>${Math.round(t.ctl)}</b><span>натоварване 6 седм.</span></div><div><span>Умора</span><b>${Math.round(t.atl)}</b><span>последната седмица</span></div><div><span>Форма</span><b style="color:${lc}">${pc(t.pct)}</b><span>${esc(lb)}</span></div></div>
+
+  <p class="note">${window.__GAS__?'Натоварването е сметнато от времето и средния пулс на всяко бягане (спрямо LTHR 171) от листа „Strava“; обновява се с всяко ново бягане.':'Натоварването е от Relative Effort на бяганията ти в Strava; обновява се всеки ден с новото бягане.'} Гледай посоката, не точното число.</p>`;
+}
+// ---------- season calendar ----------
+function calHtml(){
+  if(!plan.length)return '';
+  const start=monday(plan[0].date),end=plan[plan.length-1].date,pl={};for(const x of plan)pl[iso(x.date)]=x;
+  const raceD=new Set(season?season.slice(1,7).filter(r=>pd(r[0])).map(r=>iso(pd(r[0]))):[]);
+  let cells='',done=0,due=0;
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    const k=iso(d),x=pl[k];let bg='var(--card)',op=1,cls='';
+    if(raceD.has(k)){bg='var(--ink)'}
+    else if(x&&num(x.G)){
+      if(d<today){due++;const r=num(x.I)/num(x.G);if(r>=.8){bg='var(--red)';done++}else if(r>0){bg='var(--red)';op=.45}else{bg='var(--mute)';op=.35}}
+      else{bg='transparent';cls='fut'}
+    }
+    if(+d===+today)cls+=' tdy';
+    cells+=`<button class="cd ${cls}" data-day="${k}" style="background:${bg};opacity:${op}" aria-label="${esc(dm(d))}${x?' '+esc(x.D):''}"></button>`;
+  }
+  return `<h2>Календар на сезона</h2><p class="hs">${due?`${done} от ${due} планирани бягания изпълнени (${Math.round(done/due*100)}%)`:'Сезонът тепърва започва'}</p>
+  <div class="cal">${cells}</div>
+  <div class="lg"><span><i style="background:var(--red)"></i>изпълнено</span><span><i style="background:var(--red);opacity:.45"></i>частично</span><span><i style="background:var(--mute);opacity:.35"></i>пропуснато</span><span><i style="border:1px solid var(--mute)"></i>предстои</span><span><i style="background:var(--ink)"></i>старт</span></div>
+  <p class="note">Колоните са седмиците (понеделник отгоре). Натисни ден, за да отвориш седмицата му.</p>`;
+}
+function renderForm(){view.innerHTML=formHtml()+calHtml()}
+// ---------- race checklist ----------
+async function loadChecks(){checks=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Проверка!A1:E300'},{cache:false}))}
+function rehDone(item){
+  if(!/репетиция/i.test(item[1]))return false;const d=pd(item[2]);if(!d||d>=today)return false;
+  const x=plan.find(p=>+p.date===+d);return !!(x&&num(x.G)&&num(x.I)>=num(x.G)*.8);
+}
+function checkHtml(){
+  if(!checks)return '<h3 class="ct">Проверка преди старта</h3><p class="note">Зареждам…</p>';
+  const items=checks.map((r,i)=>({r,row:i+1})).filter(o=>o.row>1&&o.r[0]===raceSel);
+  const isDone=o=>!!String(o.r[3]||'').trim()||rehDone(o.r);
+  const n=items.filter(isDone).length;
+  items.sort((a,b)=>(pd(a.r[2])||0)-(pd(b.r[2])||0));
+  return `<h3 class="ct">Проверка преди старта</h3><p class="hs">${n} от ${items.length} готови</p><div class="meter" style="margin-bottom:8px"><i style="width:${items.length?Math.round(n/items.length*100):0}%"></i></div>
+  <div class="chk">${items.map(o=>{const dn=isDone(o),au=!String(o.r[3]||'').trim()&&rehDone(o.r),d=pd(o.r[2]),late=!dn&&d&&d<today;
+    return `<button class="ci ${dn?'dn':''} ${late?'late':''}" data-chk="${o.row}" ${au?'disabled':''}><span class="bx">${dn?'✓':''}</span><span><b>${esc(o.r[1])}</b><small>${d?'до '+esc(dm(d)):''}${au?' · по плана в таблицата':''}${late?' · закъсняло':''}${o.r[4]?' · '+esc(o.r[4]):''}</small></span></button>`}).join('')}</div>
+  <form class="ed" id="chkadd" style="grid-template-columns:minmax(0,1fr) auto;align-items:end"><label>Нова точка<input name="t" autocomplete="off" placeholder="напр. купи резервни батерии"></label><button class="pri" type="submit">Добави</button></form>`;
+}
+// ---------- weekly report ----------
+function weekRow(ws){return weeks?weeks.find(w=>+pd(w[0])===+ws):null}
+async function weeklyReport(ws){
+  const w=weekRow(ws);if(!w||!sampleFn||repBusy[w.row])return;
+  repBusy[w.row]=true;if(cur==='plan')render();
+  try{
+    if(!strava[iso(ws)])await loadStrava(ws);
+    const we=new Date(ws);we.setDate(we.getDate()+7);const days=plan.filter(x=>x.date>=ws&&x.date<we);
+    const nx=new Date(we);nx.setDate(nx.getDate()+7);const next=plan.filter(x=>x.date>=we&&x.date<nx);
+    const rr=recov?recov.slice(1).filter(r=>pd(r[0])&&pd(r[0])>=ws&&pd(r[0])<we):[];
+    const prompt=`Ти си треньор на български ултрабегач (основна цел Ultrabalaton 208 км на 23.04.2027; Jack's backyard 13.02.2027; Skopje 24h 29.05.2027). Напиши седмичен доклад за седмицата ${dm(ws)}–${dm(new Date(+we-864e5))}.
+Правила: български, до 160 думи, обикновен текст без markdown, точно 5 реда, започващи с „Седмицата:“, „Възстановяване:“, „Добре:“, „Да внимаваш:“ и „Следващата седмица:“. Тренировките се задават по темпо, не по пулс. Ползвай само дадените данни, не измисляй.
+Фаза: ${w[1]} · план ${w[2]} км / ${w[5]||'?'} м D+ · реално ${w[3]||0} км / ${w[6]||0} м D+.
+Дни:
+${days.map(x=>`${W[x.date.getDay()]} ${dm(x.date)}: план ${x.D} ${x.G||0} км; реално ${x.I||0} км${x.L?' | анализ: '+x.L.replace(/\n/g,' '):''}${(strava[iso(x.date)]||[]).filter(a=>a.sport_type==='WeightTraining').length?' | силова: да':''}`).join('\n')}
+Сутрини: ${rr.length?rr.map(r=>`${r[0]} сън ${r[1]} HRV ${r[3]} (норма ${r[4]}–${r[5]}) пулс ${r[6]} ${r[9]||''}`).join('; '):'няма записи'}
+Следващата седмица: ${next.map(x=>`${W[x.date.getDay()]} ${x.D} ${x.G||0} км`).join('; ')}`;
+    const {text}=await sampleFn(prompt.slice(0,60000));const t=text.trim();
+    await call(GS,'update_values',{spreadsheetId:SID,range:'План!T'+w.row,values:[[/^[=+]/.test(t)?"'"+t:t]]},{cache:false});
+    w[7]=t;
+  }catch(e){if(e&&['not_granted','sampling_disabled','not_declared'].includes(e.code))sampleFn=null;anErr='Докладът не успя ('+(e&&e.code||'грешка')+').'}
+  delete repBusy[w.row];if(cur==='plan')render();
+}
+async function autoReport(){
+  if(!sampleFn||!weeks)return;const cw=monday(today),pw=new Date(cw);pw.setDate(pw.getDate()-7);
+  const c=[];const now=new Date();if(today.getDay()===0&&now.getHours()>=18)c.push(cw);c.push(pw);
+  for(const ws of c){const w=weekRow(ws);if(w&&!w[7]&&num(w[3])>0)await weeklyReport(ws)}
+}
+function reportHtml(){
+  const w=weekRow(weekStart);if(!w)return '';
+  if(repBusy[w.row])return '<div class="an"><b>Седмичен доклад</b>Пиша доклада за седмицата…</div>';
+  const ended=+weekStart<+monday(today)||(today.getDay()===0);
+  if(w[7])return `<div class="an"><b>Седмичен доклад</b>${esc(w[7])}</div>${sampleFn?'<div class="acts"><button data-rep="1">Обнови доклада</button></div>':''}`;
+  return ended&&sampleFn&&num(w[3])>0?'<div class="acts"><button data-rep="1">Седмичен доклад</button></div>':'';
+}
+
+function renderRaces(){
+  const el=document.getElementById('races');if(!season)return;
+  const rs=season.slice(1,7).filter(r=>r[1]&&pd(r[0])).map(r=>({d:pd(r[0]),n:r[1],p:r[2],f:r[9]})).filter(r=>r.d>=today).sort((a,b)=>a.d-b.d);
+  el.innerHTML=rs.map(r=>`<button class="race ${r.p==='A'?'a':''} ${(cur==='sheet'&&sheetSel===r.n)||(cur==='race'&&raceSel===r.n)?'sel':''}" aria-pressed="${(cur==='sheet'&&sheetSel===r.n)||(cur==='race'&&raceSel===r.n)}" data-race="${esc(r.n)}"><b>${Math.round((r.d-today)/864e5)} дни</b>${esc(r.n)} · ${esc(dm(r.d))}<small>${r.f&&r.f!=='няма таб'?'Прогноза: '+esc(r.f):''}</small><small>${r.p?esc(r.p)+' състезание · ':''}ден на старта ›</small></button>`).join('');
+}
+const typeCls=d=>/^Почивка/.test(d)?'rest':/^(Бърза|Баири|Равно темпо|Тест|Дълго|Backyard|Състезание)/.test(d)?'key':'';
+function corosLine(x){if(window.__GAS__)return '';
+  if(/^Почивка/.test(x.D))return '';
+  if(corosErr)return `<div class="coros miss">${esc(corosErr)}</div>`;
+  const list=coros[iso(x.date)];if(!list)return '';
+  if(!list.length)return x.date>=today?`<div class="coros miss">Не е в COROS</div>`:'';
+  const c=list[0], km=num(x.G), same=c.dist==null||!km||Math.abs(c.dist-km)<0.6;
+  return `<div class="coros ${same?'ok':'miss'}">COROS: ${esc(c.name)}${c.dist!=null?' · '+esc(c.dist.toFixed(1))+' км':''}${same?' ✓':' – различава се от таблицата'}</div>`;
+}
+function dayCard(x){
+  const isT=+x.date===+today, real=num(x.I);
+  const ed=editing===x.row?editForm(x):'';
+  return `<article class="day ${isT?'today':''}" id="d${x.row}" style="box-shadow:inset 5px 0 0 ${typeColor(x.D)}">
+  <div class="dh"><span class="d">${esc(W[x.date.getDay()])} ${esc(dm(x.date))}${isT?' · днес':''}${doneBadge(x)}${prBadge(x)}</span><span class="chip ${typeCls(x.D)}">${esc(x.D)}</span></div>
+  ${x.E?`<div class="wk">${esc(x.E)}</div>`:''}
+  ${x.F?`<div class="pace">Темпо: ${esc(x.F)}</div>`:''}
+  <div class="nums">${num(x.G)?`<span>План <b>${esc(x.G)} км</b></span>`:''}${num(x.H)?`<span>D+ <b>${esc(x.H)} м</b></span>`:''}${real?`<span>Реално <b>${esc(x.I)} км</b>${num(x.J)?' / <b>'+esc(x.J)+' м</b>':''}</span>`:''}</div>
+  ${x.K?`<div class="note">${esc(x.K)}</div>`:''}
+  ${anBusy[x.row]?`<div class="an"><b>Анализ</b>Анализирам бягането…</div>`:x.L?`<div class="an"><b>Анализ</b>${esc(x.L)}</div>`:''}
+  ${stravaLine(x)}
+  ${corosLine(x)}
+  ${ed||`<div class="acts"><button data-ed="${x.row}">Промени</button>${sampleFn&&hasRun(x)?`<button data-an="${x.row}">${x.L?'Анализирай отново':'Анализ'}</button>`:''}${!window.__GAS__&&x.date>=today&&!/^Почивка/.test(x.D)?`<button data-sync="${x.row}">Към COROS</button>`:''}</div><div class="msg" id="m${x.row}" hidden></div>`}
+  </article>`;
+}
+function editForm(x){
+  return `<form class="ed" data-row="${x.row}">
+  <label>Вид<input name="D" value="${esc(x.D)}"></label>
+  <label>Тренировка<textarea name="E">${esc(x.E)}</textarea></label>
+  <label>Темпо (мин/км)<input name="F" value="${esc(x.F)}"></label>
+  <div class="row2"><label>План км<input name="G" inputmode="decimal" value="${esc(x.G)}"></label><label>План D+ (м)<input name="H" inputmode="numeric" value="${esc(x.H)}"></label></div>
+  <label>Бележка<textarea name="K">${esc(x.K)}</textarea></label>
+  ${!window.__GAS__&&x.date>=today?`<label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" name="co" checked style="width:auto"> Обнови и в COROS</label>`:''}
+  <div class="acts"><button class="pri" type="submit">Запази</button><button type="button" data-cancel="1">Откажи</button></div>
+  <div class="msg" id="m${x.row}" hidden></div></form>`;
+}
+function renderPlan(){
+  if(!plan.length){view.innerHTML='<div class="state">Няма данни в „План“.</div>';return}
+  const we=new Date(weekStart);we.setDate(we.getDate()+7);
+  const days=plan.filter(x=>x.date>=weekStart&&x.date<we);
+  const pk=days.reduce((s,x)=>s+num(x.G),0), rk=days.reduce((s,x)=>s+num(x.I),0), ph=days.reduce((s,x)=>s+num(x.H),0), rh=days.reduce((s,x)=>s+num(x.J),0);
+  const pct=pk?Math.min(100,Math.round(rk/pk*100)):0, ph0=days[0]?days[0].C:'';
+  const e6=new Date(weekStart);e6.setDate(e6.getDate()+6);
+  view.innerHTML=`<div class="weekbar"><button id="prev" aria-label="Предишна седмица">‹</button><div class="t">${esc(dm(weekStart))} – ${esc(dm(e6))}${ph0?' · '+esc(ph0):''}</div><button id="next" aria-label="Следваща седмица">›</button></div>
+  <div class="tot"><div><span>План</span><b>${pk.toFixed(1)} км</b><span>${Math.round(ph)} м D+</span></div><div><span>Реално</span><b>${rk.toFixed(1)} км</b><span>${Math.round(rh)} м D+</span></div><div><span>Изпълнение</span><b>${pct}%</b><div class="meter"><i style="width:${pct}%"></i></div></div></div>
+  <div class="acts" style="margin:0 0 4px"><button id="todayb">Днес</button><button id="reload">Обнови</button>${!window.__GAS__&&days.some(x=>x.date>=today)?'<button id="syncwk">Синхронизирай седмицата с COROS</button>':''}</div>
+  ${reportHtml()}
+  ${wkMsg?`<div class="msg">${esc(wkMsg)}</div>`:''}
+  ${anErr?`<div class="msg err">${esc(anErr)}</div>`:''}
+  ${stravaErr?`<div class="msg err">${esc(stravaErr)}</div>`:''}
+  ${days.some(x=>+x.date===+today)?`<h2 class="sec">Днес</h2>${heroHtml()}${fitMsg?`<div class="msg good">${esc(fitMsg)}</div>`:''}${dayCard(days.find(x=>+x.date===+today))}<h2 class="sec">Седмицата</h2>${days.filter(x=>+x.date!==+today).map(dayCard).join('')}`:days.map(dayCard).join('')}`;
+}
+function renderSeason(){
+  if(!season){view.innerHTML='<div class="state">Зареждам „Сезон“…</div>';return}
+  const races=season.slice(1,7).filter(r=>r[1]);
+  const paces=season.slice(10,27).filter(r=>r[0]);
+  const str=season.slice(37,48).filter(r=>r[0]);
+  const free=season.slice(1,7).findIndex(r=>!r[1]);
+  const addF=addRace?`<form class="ed" id="racef">
+  <label>Име<input name="n" required autocomplete="off"></label>
+  <div class="row2"><label>Дата<input name="d" type="date" required></label><label>Приоритет<select name="p"><option>B</option><option>A</option><option>C</option></select></label></div>
+  <div class="row2"><label>Тип<select name="t"><option>Обикновено</option><option>Backyard</option><option>За време</option></select></label><label>Км<input name="km" inputmode="decimal"></label></div>
+  <div class="row2"><label>D+ (м)<input name="dp" inputmode="numeric"></label><label>Часове (за backyard / за време)<input name="h" inputmode="decimal"></label></div>
+  <label>Цел<input name="g" placeholder="напр. под 12 ч или 20 обиколки"></label>
+  <div class="row2"><label>Taper (дни)<input name="tp" inputmode="numeric" value="14"></label><label>Бележка<input name="o"></label></div>
+  <div class="acts"><button class="pri" type="submit">Добави</button><button type="button" data-raceclose="1">Откажи</button></div>
+  <div class="msg" id="racem" hidden></div></form>`:(free<0?'<p class="note">Всичките 6 места в „Сезон“ са заети – освободи ред в Таблица → Сезон.</p>':'<div class="acts"><button class="pri" data-raceadd="1">+ Добави състезание</button></div>');
+  view.innerHTML=`${seasonTop()}${fitHtml()}<h2>Състезания</h2>${addF}<div class="list">${races.map(r=>`<div class="it"><b>${esc(r[0])}</b><div><b>${esc(r[1])}</b> · ${esc(r[2])} · ${esc(r[4])} км${r[5]?' · '+esc(r[5])+' м D+':''}</div><small>Цел: ${esc(r[7]||'—')} · Прогноза: ${esc(r[9]||'—')} · Темпо: ${esc(r[11]||'—')} · Гелове: ${esc(r[12]||'—')}</small></div>`).join('')}</div>
+  <h2>Темпа и зони</h2><div class="list">${paces.map(r=>`<div class="it"><b>${esc(r[0])}</b><div class="pace">${esc(r[2])}</div>${r[4]?`<small>${esc(r[4])}</small>`:''}</div>`).join('')}</div>
+  <h2>Силова тренировка</h2><div class="list">${str.map(r=>`<div class="it"><b>${esc(r[0])}</b><div>${esc(r.slice(1).filter(Boolean).join(' · '))}</div></div>`).join('')}</div>`;
+}
+function renderRec(){
+  if(!recov){view.innerHTML='<div class="state">Зареждам „Възстановяване“…</div>';return}
+  const rows=recov.slice(1).filter(r=>r[0]).reverse().slice(0,21);
+  view.innerHTML=`<h2>Как се възстановяваш</h2>${recCharts()}<h2>Сутрини</h2>${rows.length?rows.map(r=>`<div class="rec"><div class="l">${esc(r[9]||'·')}</div><div><b>${esc(r[0])}</b> · сън ${esc(r[1]||'—')} · HRV ${esc(r[3]||'—')} (${esc(r[4]||'?')}–${esc(r[5]||'?')}) · пулс ${esc(r[6]||'—')}<div class="m">${esc(r[10]||'')}</div></div></div>`).join(''):'<div class="state">Още няма записи.</div>'}
+  <p class="note">Нова сутрин: бутон „Как съм“ в раздел „План“.</p>`;
+}
+const colL=i=>{let t='';i++;while(i){const m=(i-1)%26;t=String.fromCharCode(65+m)+t;i=(i-m-1)/26}return t};
+const isY=c=>{const b=c&&c.effectiveFormat&&c.effectiveFormat.backgroundColor;if(!b)return false;const r=b.red??0,g=b.green??0,bl=b.blue??0;return r>.95&&g>.8&&bl<.92&&bl<g-.05};
+function renderSheet(){
+  if(!sheetList){view.innerHTML='<div class="state">Зареждам списъка с листове…</div>';return}
+  let body='<div class="state">Зареждам листа…</div>';
+  if(sheetVals){
+    const rows=sheetVals.map((r,i)=>({i,c:(r.values||[])}));
+    let maxC=0;for(const r of rows)r.c.forEach((c,j)=>{if(c&&(c.formattedValue!=null||c.userEnteredValue))maxC=Math.max(maxC,j+1)});
+    let minC=maxC;for(const r of rows)r.c.forEach((c,j)=>{if(c&&c.formattedValue!=null)minC=Math.min(minC,j)});
+    const vis=rows.filter(r=>r.c.some(c=>c&&c.formattedValue!=null));
+    body=vis.length?`<div class="scroll"><table>${vis.map(r=>`<tr>${Array.from({length:Math.max(0,maxC-minC)},(_,k)=>{const j=k+minC,c=r.c[j]||{},f=!!(c.userEnteredValue&&c.userEnteredValue.formulaValue),cls=f?'f':isY(c)?'y':'e';return `<td class="${cls}" ${f?'':`data-cell="${r.i}:${j}"`}>${esc(c.formattedValue??'')}</td>`}).join('')}</tr>`).join('')}</table></div>`:'<div class="state">Листът е празен.</div>';
+  }
+  const isRace=season&&season.slice(1,7).some(r=>r[1]===sheetSel);
+  if(sheetVals&&isRace){
+    const rows=sheetVals.map((r,i)=>({i,c:(r.values||[])}));
+    const blk=[[4,5],[1,2],[7,8]].map(([l,v])=>{let out='';for(const r of rows){const L=r.c[l],V=r.c[v];const lt=L&&L.formattedValue,vt=V&&V.formattedValue;if(!lt&&!vt)continue;
+      if(lt&&!vt&&!(V&&V.userEnteredValue)&&!isY(V)&&lt===lt.toUpperCase()&&/[А-ЯA-Z]/.test(lt)){out+=`<h3 style="font-size:17px;margin:18px 0 4px;color:var(--red)">${esc(lt)}</h3>`;continue}
+      if(lt&&!V&&l===7&&lt.length>60){out+=`<p class="note">${esc(lt)}</p>`;continue}
+      const f=!!(V&&V.userEnteredValue&&V.userEnteredValue.formulaValue), cls=f?'f':isY(V)?'y':'e';
+      out+=`<div class="it"><b>${esc(lt||'')}</b><div class="cv ${cls}" ${f?'':`data-cell="${r.i}:${v}" role="button" tabindex="0"`}>${esc(vt??'—')}</div></div>`}return out});
+    body=`<div class="list">${blk.join('')}</div>`;
+  }
+  view.innerHTML=`<h2>Цялата таблица</h2><label>Лист<select id="shsel">${sheetList.map(t=>`<option ${t===sheetSel?'selected':''}>${esc(t)}</option>`).join('')}</select></label>
+  <div class="sheetbar"><span><span class="sw"></span> за попълване</span><span>· натисни клетка, за да я смениш · сивите са формули</span></div>
+  <div id="shv" style="margin-top:12px">${body}</div>${cellEd?cellEditor():''}`;
+}
+let cellEd=null, addRace=false;
+function cellEditor(){
+  const c=cellEd.c, dv=c.dataValidation&&c.dataValidation.condition, opts=dv&&dv.type==='ONE_OF_LIST'?(dv.values||[]).map(v=>v.userEnteredValue):null;
+  const cur=c.formattedValue??'';
+  const lab=sheetVals[cellEd.i]?.values?.slice(0,cellEd.j).reverse().find(x=>x&&x.formattedValue&&!isY(x))?.formattedValue||'';
+  return `<div class="sheetx" role="dialog" aria-label="Промяна на клетка"><form class="in" id="cellf">
+  <div><b>${esc(sheetSel)} · ${esc(colL(cellEd.j)+(cellEd.i+1))}</b>${lab?' · '+esc(lab):''}</div>
+  ${opts?`<select name="v">${opts.map(o=>`<option ${o===cur?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input name="v" value="${esc(cur)}" autocomplete="off">`}
+  <div class="note">Пиши както в таблицата: време 22:30:00, дата 23.04.2027, десетична запетая 208,5.</div>
+  <div class="acts"><button class="pri" type="submit">Запази</button><button type="button" data-cclose="1">Откажи</button></div>
+  <div class="msg" id="cellm" hidden></div></form></div>`;
+}
+function render(){renderRaces();charts={};({plan:renderPlan,season:renderSeason,rec:renderRec,sheet:renderSheet,race:renderRace,form:renderForm})[cur]();mountCharts()}
+function showErr(e,srv){view.innerHTML=`<div class="state">${esc(errText(e,srv))}<div class="acts" style="justify-content:center"><button id="retry">Опитай пак</button></div></div>`}
+
+async function goWeek(ws){weekStart=ws;editing=null;wkMsg='';render();if(mcp){await Promise.all([loadCoros(ws),loadStrava(ws)]);if(cur==='plan')render();autoAnalyze()}}
+async function setView(v){
+  cur=v;for(const b of document.querySelectorAll('#tabs button'))b.setAttribute('aria-current',String(b.dataset.v===v));
+  render();
+  try{
+    if(v==='form'){const ps=[];if(!hist)ps.push(loadHistory());if(!season)ps.push(loadSeason());if(ps.length){await Promise.all(ps);if(cur==='form')render()}}
+    if(v==='season'){const ps=[];if(!season)ps.push(loadSeason());if(!weeks)ps.push(loadWeeks());if(ps.length){await Promise.all(ps);if(cur==='season')render()}}
+    if(v==='rec'&&!recov){recov=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Възстановяване!A3:K400'},{cache:{staleTime:6e4,gcTime:3e5}}));render()}
+    if(v==='sheet'&&!sheetList){const p=await call(GS,'get_spreadsheet',{spreadsheetId:SID,fields:['sheets.properties.title','sheets.properties.hidden']});sheetList=((p&&(p.sheets||p.content?.sheets))||[]).filter(s=>!s.properties.hidden).map(s=>s.properties.title);render();if(sheetList.length&&!sheetSel)loadSheet(sheetList.includes('Табло')?'Табло':sheetList[0])}
+  }catch(e){showErr(e,GS)}
+}
+async function loadSheet(t,fresh){
+  sheetSel=t;if(!fresh)sheetVals=null;cellEd=null;render();
+  try{
+    const p=await call(GS,'get_spreadsheet',{spreadsheetId:SID,ranges:["'"+t.replace(/'/g,"''")+"'!A1:Z250"],fields:['sheets.data.rowData.values.formattedValue','sheets.data.rowData.values.userEnteredValue','sheets.data.rowData.values.effectiveFormat.backgroundColor','sheets.data.rowData.values.dataValidation.condition']},{cache:fresh?{refresh:true,staleTime:0,gcTime:3e5}:{staleTime:6e4,gcTime:3e5}});
+    const sh=(p&&(p.sheets||p.content?.sheets))||[];
+    sheetVals=(sh[0]?.data?.[0]?.rowData)||[];if(sheetSel===t)render();
+  }catch(e){const el=document.getElementById('shv');if(el)el.textContent=errText(e,GS)}
+}
+const cell=v=>{v=String(v??'');return /^[+=]/.test(v)||/^\d{1,2}:\d\d$/.test(v.trim())?"'"+v:v};
+function paceRange(f){
+  const m=String(f).match(/(\d{1,2}):(\d\d)\s*[–-]\s*(\d{1,2}):(\d\d)/);if(m)return[m[1]*60+ +m[2],m[3]*60+ +m[4]];
+  const s=String(f).match(/(\d{1,2}):(\d\d)/);return s?[s[1]*60+ +s[2],s[1]*60+ +s[2]]:null;
+}
+async function pushCoros(x){
+  if(/^Почивка/.test(x.D))return 'Почивка – нищо за COROS.';
+  const km=num(x.G), pr=paceRange(x.F), d=ymd(x.date);
+  const name=(x.D.replace(/\s*\+.*$/,'')+(km?' '+String(km).replace('.',',')+' км':'')).slice(0,100);
+  const desc=[x.E,x.F?'Темпо: '+x.F:'',x.K].filter(Boolean).join('\n');
+  const t=txt(await call(CO,'queryTrainingSchedule',{startDate:d,endDate:d},{cache:false}));
+  const id=(t.match(/idInPlan:\s*(\d+)/)||[])[1];
+  if(id){
+    const det=txt(await call(CO,'queryScheduledWorkoutDetails',{date:d,idInPlan:id},{cache:false}));
+    if(!/Editable via MCP:\s*yes/i.test(det))return 'COROS не позволява промяна на тази тренировка (минала или вече изпълнена).';
+    const cj=det.match(/Course JSON:\s*(\{.*\})\s*\n/);if(!cj)return 'Не успях да прочета тренировката в COROS.';
+    const c=JSON.parse(cj[1]);c.courseName=name;c.courseDescription=desc;
+    let note='';
+    if(c.sections.length===1&&!c.sections[0].intervalGroup&&c.sections[0].targetType===1){
+      const s=c.sections[0];if(km)s.targetValue=Math.round(km*1000);
+      if(pr&&pr[0]>=120&&pr[1]<=1499){s.intensityType=2;delete s.sectionIntensity;delete s.intensityPercentStart;delete s.intensityPercentEnd;s.intensityValueStart=pr[0];s.intensityValueEnd=pr[1]}
+    }else note=' Структурата (загрявка/повторения) е запазена – за промяна в нея пиши на Claude.';
+    await call(CO,'updateScheduledWorkout',{date:d,idInPlan:id,course:c},{cache:false});
+    return 'Обновено в COROS.'+note;
+  }
+  if(/^(Бърза|Баири|Равно темпо|Тест|Backyard|Състезание)/.test(x.D))return 'Структурираните тренировки (повторения, загрявка с лап) ги слага Claude в чата – пиши му.';
+  if(!km||!pr)return 'Трябват км и темпо, за да я създам в COROS.';
+  const diff=(x.date-today)/864e5;if(diff>90)return 'COROS приема тренировки до 90 дни напред.';
+  await call(CO,'createScheduledWorkout',{date:d,course:{courseName:name,courseDescription:desc,sportType:/Витоша|trail|пътек/i.test(x.E)?5:1,sections:[{sectionType:2,targetType:1,targetValue:Math.round(km*1000),intensityType:2,intensityValueStart:pr[0],intensityValueEnd:pr[1]}]}},{cache:false});
+  return 'Създадена в COROS.';
+}
+function alertMsg(t){const m=document.createElement('div');m.className='msg err';m.textContent=t;view.prepend(m)}
+function msg(row,t,cls){const m=document.getElementById('m'+row);if(m){m.hidden=false;m.className='msg '+(cls||'');m.textContent=t}}
+
+document.getElementById('races').addEventListener('click',async e=>{const b=e.target.closest('button[data-race]');if(!b)return;openRace(b.dataset.race)});
+async function openRaceSheet(n){sheetSel=n;sheetVals=null;await setView('sheet');if(sheetList&&sheetList.includes(n))loadSheet(n);else{const el=document.getElementById('shv');if(el)el.textContent='Няма лист с име „'+n+'“.'}}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setView(b.dataset.v)});
+view.addEventListener('click',async e=>{
+  const td=e.target.closest('[data-cell]');
+  if(td){const[i,j]=td.dataset.cell.split(':').map(Number);cellEd={i,j,c:(sheetVals[i]?.values?.[j])||{}};render();document.querySelector('#cellf [name=v]')?.focus();return}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.cclose){cellEd=null;render();return}
+  if(b.dataset.day){const d=new Date(b.dataset.day+'T00:00:00');weekStart=monday(d);await setView('plan');goWeek(weekStart);return}
+  if(b.dataset.rep){weeklyReport(weekStart);return}
+  if(b.dataset.fm){fmMetric=b.dataset.fm;render();return}
+  if(b.dataset.fr){fmRange=b.dataset.fr;render();return}
+  if(b.dataset.chk){const row=+b.dataset.chk,r=checks[row-1];const nv=String(r[3]||'').trim()?'':'✓';r[3]=nv;render();
+    try{await call(GS,'update_values',{spreadsheetId:SID,range:'Проверка!D'+row,values:[[nv]]},{cache:false})}catch(err){r[3]=nv?'':'✓';render();alertMsg(errText(err,GS))}return}
+  if(b.dataset.raceedit){openRaceSheet(raceSel);return}
+  if(b.dataset.raceadd){addRace=true;render();document.querySelector('#racef [name=n]')?.focus();return}
+  if(b.dataset.raceclose){addRace=false;render();return}
+  if(b.id==='prev'){const w=new Date(weekStart);w.setDate(w.getDate()-7);goWeek(w)}
+  else if(b.id==='next'){const w=new Date(weekStart);w.setDate(w.getDate()+7);goWeek(w)}
+  else if(b.id==='todayb'){goWeek(monday(today))}
+  else if(b.dataset.an){const x=plan.find(p=>p.row===+b.dataset.an);if(x&&!anBusy[x.row])analyzeDay(x)}
+  else if(b.id==='howami'){b.disabled=true;b.textContent='Взимам от COROS…';recMsg='';
+    try{await howAmI();const r=recToday();recMsg='Записано във „Възстановяване“.'}
+    catch(err){recMsg='✗ '+(err&&err.code==='nodata'?'COROS още няма данни за съня от тази нощ – синхронизирай часовника и опитай пак.':errText(err,err&&err.server==='Google Sheets'?GS:CO))}
+    render()}
+  else if(b.id==='syncwk'){b.disabled=true;b.textContent='Синхронизирам…';wkMsg='';try{await syncWeek()}catch(err){wkMsg=errText(err,CO)}render()}
+  else if(b.id==='reload'||b.id==='retry'){season=null;recov=null;sheetList=null;coros={};strava={};weeks=null;fcast=null;hist=null;checks=null;start(true)}
+  else if(b.dataset.ed){editing=+b.dataset.ed;render();document.getElementById('d'+editing)?.scrollIntoView({block:'start'})}
+  else if(b.dataset.cancel){editing=null;render()}
+  else if(b.dataset.sync){
+    const x=plan.find(p=>p.row===+b.dataset.sync);b.disabled=true;msg(x.row,'Изпращам към COROS…');
+    try{const r=await pushCoros(x);msg(x.row,r,'good');coros={};await loadCoros(weekStart);render();msg(x.row,r,'good')}
+    catch(err){msg(x.row,errText(err,CO)+' Провери в COROS преди да опиташ пак.','err')}
+    b.disabled=false;
+  }
+});
+view.addEventListener('change',e=>{if(e.target.id==='shsel')loadSheet(e.target.value)});
+view.addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(e.target.id==='chkadd'){
+    const t=String(new FormData(e.target).get('t')||'').trim();if(!t)return;
+    try{const r=(checks?checks.length:1)+1;await call(GS,'update_values',{spreadsheetId:SID,range:`Проверка!A${r}:E${r}`,values:[[raceSel,/^[=+]/.test(t)?"'"+t:t,'','','']]},{cache:false});await loadChecks();render()}catch(err){alertMsg(errText(err,GS))}
+    return;
+  }
+  if(e.target.id==='racef'){
+    const f=e.target,fd=new FormData(f),m=document.getElementById('racem');
+    const say=(t,c)=>{m.hidden=false;m.className='msg '+(c||'');m.textContent=t};
+    const g=k=>String(fd.get(k)??'').trim(), dd=g('d').split('-');
+    if(!g('n')||dd.length!==3){say('Трябват име и дата.','err');return}
+    for(const btn of f.querySelectorAll('button'))btn.disabled=true;say('Записвам в „Сезон“…');
+    try{
+      const cur=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Сезон!B4:B9'},{cache:false}));
+      let r=-1;for(let i=0;i<6;i++){if(!String(cur[i]?.[0]??'').trim()){r=i+4;break}}
+      if(r<0){say('Няма свободен ред в „Сезон“ (места 4–9).','err');for(const btn of f.querySelectorAll('button'))btn.disabled=false;return}
+      const nm=g('n').replace(/^[=+]/,"'$&");
+      await call(GS,'update_values',{spreadsheetId:SID,range:`Сезон!A${r}:I${r}`,values:[[`${dd[2]}.${dd[1]}.${dd[0]}`,nm,g('p'),g('t'),g('km'),g('dp'),g('h'),g('g').replace(/^[=+]/,"'$&"),g('tp')]]},{cache:false});
+      if(g('o'))await call(GS,'update_values',{spreadsheetId:SID,range:`Сезон!O${r}`,values:[[g('o').replace(/^[=+]/,"'$&")]]},{cache:false});
+      addRace=false;season=null;await loadSeason();render();
+      const st=document.createElement('div');st.className='msg good';st.textContent=`„${g('n')}“ е добавено в „Сезон“. В понеделник седмичната корекция ще преработи плана около него; ако искаш веднага, пиши на Claude. Прогнозата от Strava се появява, когато състезанието има собствен лист – и това може да направи Claude.`;
+      view.prepend(st);
+    }catch(err){say(errText(err,GS),'err');for(const btn of f.querySelectorAll('button'))btn.disabled=false}
+    return;
+  }
+  if(e.target.id==='cellf'){
+    const f=e.target,v=String(new FormData(f).get('v')??''),m=document.getElementById('cellm');
+    const say=(t,c)=>{m.hidden=false;m.className='msg '+(c||'');m.textContent=t};
+    if(/^=/.test(v.trim())){say('Формули не се пишат оттук.','err');return}
+    for(const btn of f.querySelectorAll('button'))btn.disabled=true;say('Записвам…');
+    const a1="'"+sheetSel.replace(/'/g,"''")+"'!"+colL(cellEd.j)+(cellEd.i+1);
+    try{await call(GS,'update_values',{spreadsheetId:SID,range:a1,values:[[/^\+/.test(v)?"'"+v:v]]},{cache:false});
+      if(sheetSel==='План'){plan=[];loadPlan(true).catch(()=>{})}if(sheetSel==='Сезон')season=null;if(sheetSel==='Възстановяване')recov=null;
+      await loadSheet(sheetSel,true);
+    }catch(err){say(errText(err,GS),'err');for(const btn of f.querySelectorAll('button'))btn.disabled=false}
+    return;
+  }const f=e.target, row=+f.dataset.row, x=plan.find(p=>p.row===row), fd=new FormData(f);
+  const nx={...x};for(const k of['D','E','F','G','H','K'])nx[k]=String(fd.get(k)??'');
+  if(!/^\d{1,2}\.\d{1,2}\.\d{4}/.test(x.A)){msg(row,'Неочаквана дата в реда – спирам.','err');return}
+  for(const btn of f.querySelectorAll('button'))btn.disabled=true;msg(row,'Записвам в таблицата…');
+  const g=nx.G.trim()===''?'':num(nx.G), h=nx.H.trim()===''?'':num(nx.H);
+  try{
+    const chk=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'План!A'+row},{cache:false}));
+    if(String(chk?.[0]?.[0]||'')!==x.A){msg(row,'Таблицата се е променила – натисни „Обнови“ и опитай пак.','err');for(const btn of f.querySelectorAll('button'))btn.disabled=false;return}
+    await call(GS,'update_values',{spreadsheetId:SID,range:`План!D${row}:H${row}`,values:[[cell(nx.D),cell(nx.E),cell(nx.F),g,h]]},{cache:false});
+    await call(GS,'update_values',{spreadsheetId:SID,range:`План!K${row}`,values:[[cell(nx.K)]]},{cache:false});
+  }catch(err){msg(row,errText(err,GS),'err');for(const btn of f.querySelectorAll('button'))btn.disabled=false;return}
+  let res='Записано в таблицата.';
+  if(fd.get('co')){try{nx.G=String(g);res+=' '+await pushCoros(nx)}catch(err){res+=' COROS: '+errText(err,CO)}}
+  editing=null;try{await loadPlan(true)}catch(_){}
+  coros={};await loadCoros(weekStart);render();msg(row,res,'good');
+});
+
+async function start(refresh){
+  view.innerHTML='<div class="state">Зареждам плана…</div>';
+  mcp=await claude.use('mcp');
+  if(!mcp){view.innerHTML='<div class="state">Връзката с Google Sheets и COROS не е достъпна тук. Отвори страницата в claude.ai или в приложението Claude.</div>';return}
+  try{await loadPlan(refresh)}catch(e){showErr(e,GS);return}
+  if(!weekStart)weekStart=monday(today);
+  render();
+  loadSeason().catch(()=>{});
+  const rp=call(GS,'get_values',{spreadsheetId:SID,range:'Възстановяване!A3:K400'},{cache:{staleTime:6e4,gcTime:3e5}}).then(p=>{recov=vals(p)}).catch(()=>{});
+  claude.use('sample').then(f=>{sampleFn=f}).catch(()=>{});
+  loadFitness().then(()=>{if(cur!=='sheet')render()});
+  await Promise.all([loadCoros(weekStart),loadStrava(weekStart),rp]);if(cur==='plan')render();else setView(cur);
+  if(!window.__GAS__)for(let i=0;i<20&&sampleFn===null;i++)await new Promise(r=>setTimeout(r,500));
+  await loadWeeks().catch(()=>{});
+  if(!hist)loadHistory().then(()=>{if(cur==='form')render()});
+  if(cur==='plan')render();autoAnalyze().then(autoReport);
+}
+start(false);
+}
+</script>
+</body>
+</html>
