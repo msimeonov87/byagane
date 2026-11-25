@@ -120,9 +120,17 @@ window.__GAS__=true;
     return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({t:T,server:server,tool:tool,input:input||{}})})
       .then(function(r){return r.json()},function(e){throw{code:'upstream_error',message:'Няма връзка с таблицата.',server:server,retryable:true}})
       .then(function(r){
-        if(r&&r.__error){if(r.code==='unauthorized'){try{localStorage.removeItem('byagane_t')}catch(e){}}throw{code:r.code||'tool_error',message:r.message||'',server:server}}
+        if(r&&r.__error){if(r.code==='unauthorized'){try{localStorage.removeItem('byagane_t')}catch(e){}}if(server==='COROS'&&(r.code==='server_not_connected'||r.code==='needs_reauth'))connectBtn();throw{code:r.code||'tool_error',message:r.message||'',server:server}}
         return{payload:r}});
   }
+  function connectBtn(){
+    if(document.getElementById('corosc'))return;
+    var b=document.createElement('button');b.id='corosc';b.className='pri';b.textContent='Свържи COROS';
+    b.style.cssText='display:block;margin:8px 0;width:100%';
+    b.onclick=function(){window.open(API+'?connect='+T,'_blank')};
+    var h=document.querySelector('header');if(h)h.appendChild(b);
+  }
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&document.getElementById('corosc')){document.getElementById('corosc').remove();if(window.__reloadAll)window.__reloadAll()}});
   var mcp={callTool:function(s,t,i){return run(s,t,i)},watchTool:function(){return function(){}},invalidate:function(){return Promise.resolve()}};
   window.claude={use:function(n){return Promise.resolve(n==='mcp'?mcp:null)}};
   if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js')});
@@ -147,8 +155,8 @@ const today=new Date();today.setHours(0,0,0,0);
 const monday=d=>{const x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));x.setHours(0,0,0,0);return x};
 const vals=p=>(p&&(p.values||p.content?.values))||[];
 const errText=(e,srv)=>{const c=e&&e.code;
-  if(c==='needs_reauth')return `Връзката с ${srv} е изтекла – свържи я отново в claude.ai → Настройки → Connectors.`;
-  if(c==='server_not_connected'||c==='selection_required')return `${srv} не е свързан – добави го в claude.ai → Настройки → Connectors.`;
+  if(c==='needs_reauth')return window.__GAS__?`Връзката с ${srv} е изтекла – натисни „Свържи COROS“ горе.`:`Връзката с ${srv} е изтекла – свържи я отново в claude.ai → Настройки → Connectors.`;
+  if(c==='server_not_connected'||c==='selection_required')return window.__GAS__?`${srv} не е свързан – натисни „Свържи COROS“ горе.`:`${srv} не е свързан – добави го в claude.ai → Настройки → Connectors.`;
   if(c==='not_in_manifest'||c==='approval_required'||c==='consent_required')return `Нямам разрешение за ${srv} – натисни „Опитай пак“ и разреши достъпа.`;
   if(c==='server_unavailable'||c==='upstream_error')return `${srv} не отговаря в момента – опитай след малко.`;
   if(c==='tool_error')return `${srv} отказа: ${String(e.message||'').slice(0,200)}`;
@@ -165,7 +173,7 @@ async function loadSeason(){
   const p=await call(GS,'get_values',{spreadsheetId:SID,range:'Сезон!A3:O50'},{cache:{staleTime:6e4,gcTime:3e5}});
   season=vals(p);renderRaces();
 }
-async function loadCoros(ws){if(window.__GAS__)return;
+async function loadCoros(ws){
   corosErr='';
   const we=new Date(ws);we.setDate(we.getDate()+6);
   try{
@@ -201,8 +209,8 @@ function heroHtml(){
   const advice={'🟢':'Тренирай по план.','🟡':'Дръж темпото в долната граница; ако се чувстваш тежък, пиши на Claude.','🔴':'Днес само леко или почивка – пиши на Claude за промяна.'};
   return `<section class="hero"><div class="lt">${esc(r?.[9]||'·')}</div>
   <div class="hb">${r?esc(advice[r[9]]||'Записано за днес.'):'Как си тази сутрин?'}</div>
-  <div class="hs">${r?`Сън ${esc(r[1]||'—')} · HRV ${esc(r[3]||'—')} (норма ${esc(r[4]||'?')}–${esc(r[5]||'?')}) · пулс ${esc(r[6]||'—')} (30 дни ${esc(r[7]||'—')})`:(window.__GAS__?'Сутринта пиши на Claude „как съм“ – той записва съня, HRV и пулса.':'Натисни „Как съм“ – взимам съня, HRV и пулса от COROS.')}</div>
-  ${window.__GAS__?'':`<div class="acts"><button class="${r?'':'pri'}" id="howami">${r?'Обнови от COROS':'Как съм'}</button></div>`}
+  <div class="hs">${r?`Сън ${esc(r[1]||'—')} · HRV ${esc(r[3]||'—')} (норма ${esc(r[4]||'?')}–${esc(r[5]||'?')}) · пулс ${esc(r[6]||'—')} (30 дни ${esc(r[7]||'—')})`:'Натисни „Как съм“ – взимам съня, HRV и пулса от COROS.'}</div>
+  <div class="acts"><button class="${r?'':'pri'}" id="howami">${r?'Обнови от COROS':'Как съм'}</button></div>
   ${recMsg?`<div class="msg ${/^[✗]/.test(recMsg)?'err':''}" style="grid-column:1/-1">${esc(recMsg.replace(/^[✗] /,''))}</div>`:''}</section>`;
 }
 async function howAmI(){
@@ -286,7 +294,7 @@ async function autoAnalyze(){
   const c=plan.filter(x=>x.date>=from&&x.date<=today&&!x.L&&hasRun(x)&&!autoDone.has(x.row)).sort((a,b)=>b.date-a.date).slice(0,3);
   for(const x of c){autoDone.add(x.row);await analyzeDay(x);if(!sampleFn)break}
 }
-async function loadFitness(){if(window.__GAS__)return;
+async function loadFitness(){
   try{
     const t=txt(await call(CO,'queryFitnessAssessmentOverview',{},{cache:{staleTime:36e5,gcTime:36e5}}));
     const g=re=>(t.match(re)||[])[1]||'';
@@ -636,7 +644,7 @@ function renderRaces(){
   el.innerHTML=rs.map(r=>`<button class="race ${r.p==='A'?'a':''} ${(cur==='sheet'&&sheetSel===r.n)||(cur==='race'&&raceSel===r.n)?'sel':''}" aria-pressed="${(cur==='sheet'&&sheetSel===r.n)||(cur==='race'&&raceSel===r.n)}" data-race="${esc(r.n)}"><b>${Math.round((r.d-today)/864e5)} дни</b>${esc(r.n)} · ${esc(dm(r.d))}<small>${r.f&&r.f!=='няма таб'?'Прогноза: '+esc(r.f):''}</small><small>${r.p?esc(r.p)+' състезание · ':''}ден на старта ›</small></button>`).join('');
 }
 const typeCls=d=>/^Почивка/.test(d)?'rest':/^(Бърза|Баири|Равно темпо|Тест|Дълго|Backyard|Състезание)/.test(d)?'key':'';
-function corosLine(x){if(window.__GAS__)return '';
+function corosLine(x){
   if(/^Почивка/.test(x.D))return '';
   if(corosErr)return `<div class="coros miss">${esc(corosErr)}</div>`;
   const list=coros[iso(x.date)];if(!list)return '';
@@ -656,7 +664,7 @@ function dayCard(x){
   ${anBusy[x.row]?`<div class="an"><b>Анализ</b>Анализирам бягането…</div>`:x.L?`<div class="an"><b>Анализ</b>${esc(x.L)}</div>`:''}
   ${stravaLine(x)}
   ${corosLine(x)}
-  ${ed||`<div class="acts"><button data-ed="${x.row}">Промени</button>${sampleFn&&hasRun(x)?`<button data-an="${x.row}">${x.L?'Анализирай отново':'Анализ'}</button>`:''}${!window.__GAS__&&x.date>=today&&!/^Почивка/.test(x.D)?`<button data-sync="${x.row}">Към COROS</button>`:''}</div><div class="msg" id="m${x.row}" hidden></div>`}
+  ${ed||`<div class="acts"><button data-ed="${x.row}">Промени</button>${sampleFn&&hasRun(x)?`<button data-an="${x.row}">${x.L?'Анализирай отново':'Анализ'}</button>`:''}${x.date>=today&&!/^Почивка/.test(x.D)?`<button data-sync="${x.row}">Към COROS</button>`:''}</div><div class="msg" id="m${x.row}" hidden></div>`}
   </article>`;
 }
 function editForm(x){
@@ -666,7 +674,7 @@ function editForm(x){
   <label>Темпо (мин/км)<input name="F" value="${esc(x.F)}"></label>
   <div class="row2"><label>План км<input name="G" inputmode="decimal" value="${esc(x.G)}"></label><label>План D+ (м)<input name="H" inputmode="numeric" value="${esc(x.H)}"></label></div>
   <label>Бележка<textarea name="K">${esc(x.K)}</textarea></label>
-  ${!window.__GAS__&&x.date>=today?`<label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" name="co" checked style="width:auto"> Обнови и в COROS</label>`:''}
+  ${x.date>=today?`<label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" name="co" checked style="width:auto"> Обнови и в COROS</label>`:''}
   <div class="acts"><button class="pri" type="submit">Запази</button><button type="button" data-cancel="1">Откажи</button></div>
   <div class="msg" id="m${x.row}" hidden></div></form>`;
 }
@@ -679,7 +687,7 @@ function renderPlan(){
   const e6=new Date(weekStart);e6.setDate(e6.getDate()+6);
   view.innerHTML=`<div class="weekbar"><button id="prev" aria-label="Предишна седмица">‹</button><div class="t">${esc(dm(weekStart))} – ${esc(dm(e6))}${ph0?' · '+esc(ph0):''}</div><button id="next" aria-label="Следваща седмица">›</button></div>
   <div class="tot"><div><span>План</span><b>${pk.toFixed(1)} км</b><span>${Math.round(ph)} м D+</span></div><div><span>Реално</span><b>${rk.toFixed(1)} км</b><span>${Math.round(rh)} м D+</span></div><div><span>Изпълнение</span><b>${pct}%</b><div class="meter"><i style="width:${pct}%"></i></div></div></div>
-  <div class="acts" style="margin:0 0 4px"><button id="todayb">Днес</button><button id="reload">Обнови</button>${!window.__GAS__&&days.some(x=>x.date>=today)?'<button id="syncwk">Синхронизирай седмицата с COROS</button>':''}</div>
+  <div class="acts" style="margin:0 0 4px"><button id="todayb">Днес</button><button id="reload">Обнови</button>${days.some(x=>x.date>=today)?'<button id="syncwk">Синхронизирай седмицата с COROS</button>':''}</div>
   ${reportHtml()}
   ${wkMsg?`<div class="msg">${esc(wkMsg)}</div>`:''}
   ${anErr?`<div class="msg err">${esc(anErr)}</div>`:''}
@@ -913,6 +921,7 @@ async function start(refresh){
   if(!hist)loadHistory().then(()=>{if(cur==='form')render()});
   if(cur==='plan')render();autoAnalyze().then(autoReport);
 }
+window.__reloadAll=()=>{coros={};start(true)};
 start(false);
 }
 </script>
