@@ -131,6 +131,17 @@ window.__GAS__=true;
     var h=document.querySelector('header');if(h)h.appendChild(b);
   }
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&document.getElementById('corosc')){document.getElementById('corosc').remove();if(window.__reloadAll)window.__reloadAll()}});
+  // ── Балонче долу вдясно: отваря чата с Claude ──
+  var CHAT_URL='https://claude.ai/code/session_012ZTSVXTnyGc7avjhkygQdG';
+  function chatUI(){
+    if(document.getElementById('cbub'))return;
+    var st=document.createElement('style');
+    st.textContent='#cbub{position:fixed;right:16px;bottom:84px;width:58px;height:58px;border-radius:50%;border:0;background:var(--red);color:#fff;font-size:26px;box-shadow:0 6px 18px rgba(0,0,0,.35);z-index:50;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}';
+    document.head.appendChild(st);
+    var b=document.createElement('a');b.id='cbub';b.href=CHAT_URL;b.target='_blank';b.rel='noopener';b.setAttribute('aria-label','Пиши на треньора');b.textContent='💬';
+    document.body.appendChild(b);
+  }
+  document.addEventListener('DOMContentLoaded',chatUI);
   var mcp={callTool:function(s,t,i){return run(s,t,i)},watchTool:function(){return function(){}},invalidate:function(){return Promise.resolve()}};
   window.claude={use:function(n){return Promise.resolve(n==='mcp'?mcp:null)}};
   if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js')});
