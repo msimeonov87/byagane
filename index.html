@@ -6,11 +6,11 @@
 <title>Бягане – план</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#d62d20">
+<meta name="theme-color" content="#f7b500">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="runy-192.png">
+<link rel="apple-touch-icon" href="runy-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* VOICE: a calm training logbook you check at 5:50 before a run.
@@ -18,31 +18,31 @@
    PICTURE: the week itself, seven day cards with today blazed and opened.
    COLOUR and TYPE: white ground, near-black ink, trail-marker red accent; Archivo + Inter.
    LAYOUT: one column for the phone, bottom tab bar, sticky week switcher. */
-:root{color-scheme:light dark;--bg:light-dark(#ffffff,#111214);--card:light-dark(#f5f5f4,#1b1c1f);--ink:light-dark(#151515,#f1f1ef);--mute:light-dark(#66666b,#a1a1a8);--line:light-dark(#e2e2e0,#2c2d31);--red:light-dark(#d62d20,#ff5a4c);--soft:light-dark(#fbe7e5,#3a1c1a);--ok:light-dark(#1f7a3f,#57c27f);--warn:light-dark(#a86400,#f0b23d)}
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#111214);--card:light-dark(#f5f5f4,#1b1c1f);--ink:light-dark(#151515,#f1f1ef);--mute:light-dark(#66666b,#a1a1a8);--line:light-dark(#e2e2e0,#2c2d31);--red:light-dark(#d62d20,#ff5a4c);--bad:light-dark(#d62d20,#ff5a4c);--acc:light-dark(#f7b500,#ffcc33);--acct:light-dark(#8a6100,#ffcc33);--onacc:#1b1b1d;--soft:light-dark(#fff6d6,#2e2812);--ok:light-dark(#1f7a3f,#57c27f);--warn:light-dark(#a86400,#f0b23d)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;padding-bottom:84px}
 h1,h2,h3{font-family:Archivo,Inter,sans-serif;margin:0;line-height:1.1}
 h1{font-size:32px;font-weight:800}h2{font-size:22px;font-weight:700;margin:24px 0 10px}
 .wrap{max-width:720px;margin:0 auto;padding:16px max(4vw,14px)}
-header .blaze{display:inline-block;width:22px;height:30px;vertical-align:-4px;margin-right:10px;background:linear-gradient(#fff 0 33%,var(--red) 33% 67%,#fff 67%);border:1px solid var(--line);border-radius:2px}
+header .blaze{display:inline-block;width:22px;height:30px;vertical-align:-4px;margin-right:10px;background:linear-gradient(#fff 0 33%,var(--acc) 33% 67%,#fff 67%);border:1px solid var(--line);border-radius:2px}
 .races{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:4px}
-.race{flex:none;background:var(--card);border:0;border-radius:12px;padding:8px 12px;font-size:14px;text-align:left;color:var(--ink);line-height:1.3}.race small{display:block;color:var(--mute);font-size:12px}.race.sel small{color:#fff}
-.race b{font-family:Archivo,Inter,sans-serif;font-size:22px;display:block}.race.a{box-shadow:inset 0 0 0 2px var(--red)}.race.sel{background:var(--red);color:#fff;box-shadow:none}
+.race{flex:none;background:var(--card);border:0;border-radius:12px;padding:8px 12px;font-size:14px;text-align:left;color:var(--ink);line-height:1.3}.race small{display:block;color:var(--mute);font-size:12px}.race.sel small{color:var(--onacc);opacity:.75}
+.race b{font-family:Archivo,Inter,sans-serif;font-size:22px;display:block}.race.a{box-shadow:inset 0 0 0 2px var(--acc)}.race.sel{background:var(--acc);color:var(--onacc);box-shadow:none}
 .weekbar{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
 .weekbar .t{flex:1;text-align:center;font-weight:600}
 button{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;cursor:pointer}
-button.pri{background:var(--red);color:#fff;border-color:var(--red)}button:disabled{opacity:.5}
-button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+button.pri{background:var(--acc);color:var(--onacc);border-color:var(--acc);font-weight:600}button:disabled{opacity:.5}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--acct);outline-offset:2px}
 .tot{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
 .tot div{background:var(--card);border-radius:12px;padding:10px}.tot b{font-family:Archivo,Inter,sans-serif;font-size:22px;display:block}.tot span{font-size:13px;color:var(--mute)}
-.meter{height:8px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--red)}
+.meter{height:8px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--acc)}
 .day{border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;position:relative}
-.day.today{border:2px solid var(--red);background:var(--soft)}
-.day.today::before{content:"";position:absolute;left:-2px;top:14px;width:6px;height:28px;background:linear-gradient(#fff 0 33%,var(--red) 33% 67%,#fff 67%)}
+.day.today{border:2px solid var(--acc);background:var(--soft)}
+.day.today::before{content:"";position:absolute;left:-2px;top:14px;width:6px;height:28px;background:linear-gradient(#fff 0 33%,var(--acc) 33% 67%,#fff 67%)}
 .dh{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
 .dh .d{font-weight:600}.chip{font-size:13px;padding:2px 10px;border-radius:20px;background:var(--card);border:1px solid var(--line);white-space:nowrap}
-.chip.rest{color:var(--mute)}.chip.key{background:var(--red);color:#fff;border-color:var(--red)}
+.chip.rest{color:var(--mute)}.chip.key{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
 .wk{margin:8px 0 6px}.pace{font-weight:600}
 .nums{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--mute);margin-top:6px}.nums b{color:var(--ink);white-space:nowrap}
 .note{font-size:14px;color:var(--mute);margin-top:6px}
@@ -53,7 +53,7 @@ form.ed{display:grid;gap:10px;margin-top:12px}
 label{font-size:13px;color:var(--mute);display:grid;gap:4px}
 input,textarea,select{font:16px Inter,sans-serif;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
 textarea{min-height:90px}.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
-.msg{font-size:14px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--card)}.msg.err{color:var(--red)}.msg.good{color:var(--ok)}
+.msg{font-size:14px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--card)}.msg.err{color:var(--bad)}.msg.good{color:var(--ok)}
 .state{padding:24px;text-align:center;color:var(--mute)}
 .list .it{display:grid;grid-template-columns:9em minmax(0,1fr);gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .list .it b{font-weight:600}.list .it small{grid-column:2;color:var(--mute);font-size:14px}
@@ -61,27 +61,27 @@ textarea{min-height:90px}.row2{display:grid;grid-template-columns:minmax(0,1fr) 
 .rec .l{font-size:24px}.rec .m{font-size:14px;color:var(--mute)}
 .scroll{overflow-x:auto}table{border-collapse:collapse;font-size:14px}td,th{border:1px solid var(--line);padding:6px 8px;vertical-align:top;max-width:22em}th{background:var(--card);position:sticky;top:0}
 .cv{padding:4px 8px;border-radius:6px}.cv.y{background:light-dark(#fff2cc,#3d3415);cursor:pointer}.cv.e{cursor:pointer;text-decoration:underline dotted}.cv.f{color:var(--ink)}
-td.y{background:light-dark(#fff2cc,#3d3415);cursor:pointer}td.e{cursor:pointer}td.f{color:var(--mute)}td.y:hover,td.e:hover{outline:2px solid var(--red);outline-offset:-2px}
+td.y{background:light-dark(#fff2cc,#3d3415);cursor:pointer}td.e{cursor:pointer}td.f{color:var(--mute)}td.y:hover,td.e:hover{outline:2px solid var(--acct);outline-offset:-2px}
 .sheetbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:14px;color:var(--mute)}.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;background:light-dark(#fff2cc,#3d3415);border:1px solid var(--line)}
-.sheetx{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:2px solid var(--red);padding:16px max(4vw,14px) calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25)}.sheetx .in{max-width:720px;margin:0 auto;display:grid;gap:10px}
+.sheetx{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:2px solid var(--acc);padding:16px max(4vw,14px) calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25)}.sheetx .in{max-width:720px;margin:0 auto;display:grid;gap:10px}
 .hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;align-items:center;background:var(--card);border-radius:14px;padding:14px;margin:12px 0}
 .hero .lt{font-size:40px;line-height:1;grid-row:span 2}.hero .hb{font-weight:600}.hero .hs{font-size:14px;color:var(--mute)}.hero .acts{grid-column:1/-1;margin-top:6px}
 .sv{font-size:13px;margin-top:8px;padding:6px 10px;border-radius:8px;background:light-dark(#fff1e8,#33231a);color:light-dark(#a2430f,#ffad7a)}
 h2.sec{font-size:18px;margin:20px 0 4px}
-.an{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--card);border-left:4px solid var(--red);font-size:14px;white-space:pre-line}.an b{display:block;margin-bottom:2px}
+.an{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--card);border-left:4px solid var(--acc);font-size:14px;white-space:pre-line}.an b{display:block;margin-bottom:2px}
 .tl{position:relative;display:flex;height:18px;border-radius:9px;overflow:hidden;margin:10px 0 2px}.tl span{display:block;height:100%}.tl i{position:absolute;top:-3px;bottom:-3px;width:4px;margin-left:-2px;background:var(--ink);border:2px solid var(--bg);border-radius:3px}
 .tlr{position:relative;height:18px;font-size:11px;color:var(--mute)}.tlr span{position:absolute;transform:translateX(-50%);white-space:nowrap}
 .lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mute);margin:4px 0}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 h3.ct{font-size:16px;margin:18px 0 2px}.hs{font-size:14px;color:var(--mute);margin:2px 0 6px}
-td.n{text-align:right;white-space:nowrap}.bd{font-size:12px;padding:1px 8px;border-radius:10px;background:var(--card);color:var(--mute);white-space:nowrap;margin-left:6px}.bd.ok{color:var(--ok)}.bd.warn{color:var(--warn)}.bd.pr{background:var(--red);color:#fff}
+td.n{text-align:right;white-space:nowrap}.bd{font-size:12px;padding:1px 8px;border-radius:10px;background:var(--card);color:var(--mute);white-space:nowrap;margin-left:6px}.bd.ok{color:var(--ok)}.bd.warn{color:var(--warn)}.bd.pr{background:var(--acc);color:var(--onacc)}
 .fig{position:relative;margin:4px 0 8px}.fig>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 @media(max-width:600px){.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:2px 0;padding-inline-start:7.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7em;margin-inline-start:-7.5em;color:var(--mute)}.stack td:empty{display:none}}
 .cal{display:grid;grid-template-rows:repeat(7,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px;margin:8px 0}.cd{min-height:0;aspect-ratio:1;padding:0;border:0;border-radius:3px}.cd.fut{box-shadow:inset 0 0 0 1px var(--mute)}.cd.tdy{outline:2px solid var(--ink);outline-offset:1px}
-.chk{display:grid;gap:6px}.ci{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;text-align:left;padding:8px 10px;min-height:48px}.ci small{display:block;color:var(--mute);font-size:12px}.ci .bx{width:24px;height:24px;border:2px solid var(--mute);border-radius:6px;display:grid;place-items:center;font-weight:700}.ci.dn .bx{background:var(--red);border-color:var(--red);color:#fff}.ci.dn b{text-decoration:line-through;color:var(--mute)}.ci.late{border-color:var(--warn)}.ci:disabled{opacity:1}
-.fpm,.fpt{display:flex;gap:6px;flex-wrap:wrap}.fpm button,.fpt button{min-height:38px;border-radius:20px;padding:0 14px;font-size:14px}.fpm button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.fpt{border-bottom:1px solid var(--line);gap:0;margin-top:8px}.fpt button{border:0;border-radius:0;background:none;color:var(--mute);border-bottom:3px solid transparent}.fpt button.on{color:var(--ink);border-bottom-color:var(--red);font-weight:600}
+.chk{display:grid;gap:6px}.ci{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;text-align:left;padding:8px 10px;min-height:48px}.ci small{display:block;color:var(--mute);font-size:12px}.ci .bx{width:24px;height:24px;border:2px solid var(--mute);border-radius:6px;display:grid;place-items:center;font-weight:700}.ci.dn .bx{background:var(--acc);border-color:var(--acc);color:var(--onacc)}.ci.dn b{text-decoration:line-through;color:var(--mute)}.ci.late{border-color:var(--warn)}.ci:disabled{opacity:1}
+.fpm,.fpt{display:flex;gap:6px;flex-wrap:wrap}.fpm button,.fpt button{min-height:38px;border-radius:20px;padding:0 14px;font-size:14px}.fpm button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}.fpt{border-bottom:1px solid var(--line);gap:0;margin-top:8px}.fpt button{border:0;border-radius:0;background:none;color:var(--mute);border-bottom:3px solid transparent}.fpt button.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
 .fpn{display:flex;align-items:baseline;gap:10px;margin-top:14px}.fpn b{font-family:Archivo,Inter,sans-serif;font-size:52px;line-height:1}.fpn span{font-size:18px;font-weight:600}.fpn small{font-size:14px;color:var(--mute);font-weight:500}.fig[data-ch=fm]{touch-action:pan-y;cursor:crosshair}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:10;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--bg);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-nav.tabs button{border:0;background:none;font-size:14px;color:var(--mute);padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}nav.tabs button[aria-current=true]{color:var(--red);font-weight:600}
+nav.tabs button{border:0;background:none;font-size:14px;color:var(--mute);padding:0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}nav.tabs button[aria-current=true]{color:var(--acct);font-weight:600}
 .fresh{font-size:12px;color:var(--mute);margin-top:4px}
 @media (prefers-reduced-motion:no-preference){.day{transition:background .2s}}
 </style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
@@ -136,7 +136,7 @@ window.__GAS__=true;
   function chatUI(){
     if(document.getElementById('cbub'))return;
     var st=document.createElement('style');
-    st.textContent='#cbub{position:fixed;right:16px;bottom:84px;width:58px;height:58px;border-radius:50%;border:0;background:var(--red);color:#fff;font-size:26px;box-shadow:0 6px 18px rgba(0,0,0,.35);z-index:50;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}';
+    st.textContent='#cbub{position:fixed;right:16px;bottom:84px;width:58px;height:58px;border-radius:50%;border:0;background:var(--acc);color:var(--onacc);font-size:26px;box-shadow:0 6px 18px rgba(0,0,0,.35);z-index:50;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}';
     document.head.appendChild(st);
     var b=document.createElement('a');b.id='cbub';b.href=CHAT_URL;b.target='_blank';b.rel='noopener';b.setAttribute('aria-label','Пиши на треньора');b.textContent='💬';
     document.body.appendChild(b);
@@ -347,21 +347,21 @@ function areaSvg(d,W,H){
   if(d.zero){y0=Math.min(y0,0);y1=Math.max(y1,0)}const sp=(y1-y0)||1;y0-=sp*.15;y1+=sp*.12;if(!d.zero&&y0<0&&Math.min(...P.map(p=>p.y))>=0)y0=0;
   const X=x=>pl+(x-x0)/((x1-x0)||1)*iw,Y=y=>pt+(1-(y-y0)/(y1-y0))*ih;
   d.idxAt=px=>{let b=0,bd=1e9;P.forEach((p,i)=>{const dd=Math.abs(X(p.x)-px);if(dd<bd){bd=dd;b=i}});return b};
-  let g='<defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--red)" stop-opacity=".45"/><stop offset="1" stop-color="var(--red)" stop-opacity=".05"/></linearGradient></defs>';
+  let g='<defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acct)" stop-opacity=".45"/><stop offset="1" stop-color="var(--acct)" stop-opacity=".05"/></linearGradient></defs>';
   for(let i=0;i<=4;i++){const v=y0+(y1-y0)*i/4,yy=Y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--mute)">${esc(d.fmt(v))}</text>`}
   if(d.zero&&y0<0&&y1>0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mute)"/>`;
   const past=P.filter(p=>!p.fut),fut=P.filter((p,i)=>p.fut||(P[i+1]&&P[i+1].fut&&!p.fut));
   const path=a=>a.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+','+Y(p.y).toFixed(1)).join('');
   const base=Y(d.zero?0:y0);
-  if(past.length){g+=`<path d="${path(past)}L${X(past[past.length-1].x)},${base}L${X(past[0].x)},${base}Z" fill="url(#ag)"/><path d="${path(past)}" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linejoin="round"/>`}
-  if(fut.length>1){g+=`<path d="${path(fut)}L${X(fut[fut.length-1].x)},${base}L${X(fut[0].x)},${base}Z" fill="var(--red)" opacity=".07"/><path d="${path(fut)}" fill="none" stroke="var(--red)" stroke-width="2" stroke-dasharray="5 4" opacity=".7"/>`}
+  if(past.length){g+=`<path d="${path(past)}L${X(past[past.length-1].x)},${base}L${X(past[0].x)},${base}Z" fill="url(#ag)"/><path d="${path(past)}" fill="none" stroke="var(--acct)" stroke-width="2.5" stroke-linejoin="round"/>`}
+  if(fut.length>1){g+=`<path d="${path(fut)}L${X(fut[fut.length-1].x)},${base}L${X(fut[0].x)},${base}Z" fill="var(--acct)" opacity=".07"/><path d="${path(fut)}" fill="none" stroke="var(--acct)" stroke-width="2" stroke-dasharray="5 4" opacity=".7"/>`}
   const step=Math.max(1,Math.ceil(P.length/40));
-  P.forEach((p,i)=>{if(i%step===0&&!p.fut)g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3.2" fill="var(--bg)" stroke="var(--red)" stroke-width="2"/>`});
+  P.forEach((p,i)=>{if(i%step===0&&!p.fut)g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3.2" fill="var(--bg)" stroke="var(--acct)" stroke-width="2"/>`});
   const nt=W<520?3:5;for(let i=0;i<=nt;i++){const v=x0+(x1-x0)*i/nt;g+=`<text x="${X(v)}" y="${H-6}" text-anchor="${i===0?'start':i===nt?'end':'middle'}" font-size="11" fill="var(--mute)">${esc(dm(new Date(v)))}</text>`}
   const hi=d.hover!=null?d.hover:d.mark;
   if(hi!=null&&P[hi]){const p=P[hi],cx=X(p.x),cy=Y(p.y),lab=d.fmt(p.y)+(d.hover!=null?' · '+dm(new Date(p.x)):''),bw=Math.max(46,lab.length*8+16),bx=Math.min(W-pr-bw,Math.max(pl,cx-bw/2));
-    g+=`<line x1="${cx}" x2="${cx}" y1="${pt-8}" y2="${pt+ih}" stroke="var(--red)" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="12" fill="var(--red)" opacity=".2"/><circle cx="${cx}" cy="${cy}" r="6" fill="var(--red)"/>
-    <rect x="${bx}" y="${pt-40}" width="${bw}" height="30" rx="5" fill="var(--red)"/><text x="${bx+bw/2}" y="${pt-20}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">${esc(lab)}</text>`}
+    g+=`<line x1="${cx}" x2="${cx}" y1="${pt-8}" y2="${pt+ih}" stroke="var(--acct)" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="12" fill="var(--acct)" opacity=".2"/><circle cx="${cx}" cy="${cy}" r="6" fill="var(--acct)"/>
+    <rect x="${bx}" y="${pt-40}" width="${bw}" height="30" rx="5" fill="var(--acc)"/><text x="${bx+bw/2}" y="${pt-20}" text-anchor="middle" font-size="15" font-weight="700" fill="#1b1b1d">${esc(lab)}</text>`}
   return g;
 }
 function lineSvg(d,W,H){
@@ -388,9 +388,9 @@ function barSvg(d,W,H){
   const mx=Math.max(...d.cats.map(c=>Math.max(c.plan,c.real||0)))*1.05||1, bw=iw/n, Y=v=>pt+ih*(1-v/mx);
   let g='';for(let i=0;i<=2;i++){const v=mx*i/2,yy=Y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-5}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--mute)">${Math.round(v)}</text>`}
   d.cats.forEach((c,i)=>{const x=pl+i*bw;
-    g+=`<rect x="${x+bw*.12}" y="${Y(c.plan)}" width="${bw*.76}" height="${ih-(Y(c.plan)-pt)}" fill="${c.race?'var(--red)':'var(--ink)'}" opacity="${c.race?.25:.13}" rx="2"/>`;
-    if(c.real)g+=`<rect x="${x+bw*.28}" y="${Y(c.real)}" width="${bw*.44}" height="${ih-(Y(c.real)-pt)}" fill="var(--red)" rx="2"/>`;
-    if(c.cur)g+=`<rect x="${x}" y="${pt-14}" width="${bw}" height="${ih+14}" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="3 3" rx="3"/><text x="${x+bw/2}" y="${pt-4}" text-anchor="middle" font-size="10" fill="var(--red)">сега</text>`;
+    g+=`<rect x="${x+bw*.12}" y="${Y(c.plan)}" width="${bw*.76}" height="${ih-(Y(c.plan)-pt)}" fill="${c.race?'var(--acct)':'var(--ink)'}" opacity="${c.race?.25:.13}" rx="2"/>`;
+    if(c.real)g+=`<rect x="${x+bw*.28}" y="${Y(c.real)}" width="${bw*.44}" height="${ih-(Y(c.real)-pt)}" fill="var(--acct)" rx="2"/>`;
+    if(c.cur)g+=`<rect x="${x}" y="${pt-14}" width="${bw}" height="${ih+14}" fill="none" stroke="var(--acct)" stroke-width="1.5" stroke-dasharray="3 3" rx="3"/><text x="${x+bw/2}" y="${pt-4}" text-anchor="middle" font-size="10" fill="var(--acct)">сега</text>`;
     if(i%(W<520?6:4)===0)g+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--mute)">${esc(c.label)}</text>`;
   });
   return g;
@@ -431,7 +431,7 @@ function seasonTop(){
   <div class="tl">${segs.map(s=>`<span style="flex:${s.n};background:${s.c}" title="${esc(s.g)}"></span>`).join('')}${ci>=0?`<i style="left:${((ci+.5)/tot*100).toFixed(2)}%"></i>`:''}</div>
   <div class="tlr">${races.map(r=>{const i=weeks.findIndex(w=>{const d=pd(w[0]),e=new Date(d);e.setDate(e.getDate()+7);return r.d>=d&&r.d<e});return i<0?'':`<span style="left:${((i+.5)/tot*100).toFixed(2)}%">${esc(r.n.split(' ')[0])}</span>`}).join('')}</div>
   <div class="lg">${legend.map(([g,c])=>`<span><i style="background:${c}"></i>${esc(g)}</span>`).join('')}</div>
-  <h3 class="ct">Седмичен обем, км</h3><div class="lg"><span><i style="background:var(--ink);opacity:.25"></i>план</span><span><i style="background:var(--red)"></i>реално</span><span><i style="background:var(--red);opacity:.3"></i>седмица със старт</span></div>
+  <h3 class="ct">Седмичен обем, км</h3><div class="lg"><span><i style="background:var(--ink);opacity:.25"></i>план</span><span><i style="background:var(--acct)"></i>реално</span><span><i style="background:var(--acct);opacity:.3"></i>седмица със старт</span></div>
   ${fig('vol',190)}`;
 }
 function fcastHtml(){
@@ -446,7 +446,7 @@ function fcastHtml(){
     const lastV=pts[pts.length-1].y, firstV=pts[0].y, diff=lastV-firstV;
     const fmt=type==='Обикновено'?hhmm:(v=>String(Math.round(v*10)/10).replace('.',','));
     const better=type==='Обикновено'?diff<0:diff>0;
-    charts['fc'+j]={kind:'line',series:[{pts,color:'var(--red)'}],fmtY:fmt};
+    charts['fc'+j]={kind:'line',series:[{pts,color:'var(--acct)'}],fmtY:fmt};
     out+=`<h3 class="ct">${esc(head[j])} · ${esc(unit)}</h3><p class="hs"><b style="color:var(--ink);font-size:20px">${esc(fmt(lastV))}</b>${pts.length>1&&Math.abs(diff)>1e-6?` · <span style="color:${better?'var(--ok)':'var(--warn)'}">${better?'▲ по-добре':'▼ по-слабо'} с ${esc(fmt(Math.abs(diff)))} от ${esc(dm(new Date(pts[0].x)))}</span>`:` · ${pts.length} ${pts.length===1?'запис':'записа'}`}${type==='Обикновено'?' · по-ниско е по-бързо':''}</p>${pts.length>1?fig('fc'+j,170):''}`;
   }
   return out;
@@ -456,11 +456,11 @@ function recCharts(){
   const rows=recov.slice(1).filter(r=>pd(r[0])).slice(-30);
   if(rows.length<2)return '';
   const P=(i)=>rows.map(r=>({x:+pd(r[0]),y:num(r[i])})).filter(p=>p.y);
-  charts.hrv={kind:'line',series:[{pts:P(3),color:'var(--red)',band:rows.filter(r=>num(r[4])).map(r=>({x:+pd(r[0]),lo:num(r[4]),hi:num(r[5])}))}],fmtY:v=>Math.round(v)};
-  charts.rhr={kind:'line',series:[{pts:P(7),color:'var(--mute)',dash:true},{pts:P(6),color:'var(--red)'}],fmtY:v=>Math.round(v)};
-  charts.slp={kind:'line',series:[{pts:rows.map(r=>({x:+pd(r[0]),y:durH(r[1])})).filter(p=>!isNaN(p.y)),color:'var(--red)'}],fmtY:hhmm};
-  return `<h3 class="ct">HRV (ms)</h3><div class="lg"><span><i style="background:var(--red)"></i>HRV</span><span><i style="background:var(--red);opacity:.15"></i>нормата ти</span></div>${fig('hrv',170)}
-  <h3 class="ct">Пулс в покой</h3><div class="lg"><span><i style="background:var(--red)"></i>сутрин</span><span><i style="background:var(--mute)"></i>средно за 30 дни</span></div>${fig('rhr',150)}
+  charts.hrv={kind:'line',series:[{pts:P(3),color:'var(--acct)',band:rows.filter(r=>num(r[4])).map(r=>({x:+pd(r[0]),lo:num(r[4]),hi:num(r[5])}))}],fmtY:v=>Math.round(v)};
+  charts.rhr={kind:'line',series:[{pts:P(7),color:'var(--mute)',dash:true},{pts:P(6),color:'var(--acct)'}],fmtY:v=>Math.round(v)};
+  charts.slp={kind:'line',series:[{pts:rows.map(r=>({x:+pd(r[0]),y:durH(r[1])})).filter(p=>!isNaN(p.y)),color:'var(--acct)'}],fmtY:hhmm};
+  return `<h3 class="ct">HRV (ms)</h3><div class="lg"><span><i style="background:var(--acct)"></i>HRV</span><span><i style="background:var(--acct);opacity:.15"></i>нормата ти</span></div>${fig('hrv',170)}
+  <h3 class="ct">Пулс в покой</h3><div class="lg"><span><i style="background:var(--acct)"></i>сутрин</span><span><i style="background:var(--mute)"></i>средно за 30 дни</span></div>${fig('rhr',150)}
   <h3 class="ct">Сън</h3>${fig('slp',150)}`;
 }
 // ---------- race day ----------
@@ -476,7 +476,7 @@ function renderRace(){
   const drop=[];if(iD>=0)for(let i=iD+2;i<R.length;i++){const r=R[i];if(!r||!r[0])break;drop.push(r);if(r[0]==='Общо')break}
   const gels=[];if(iG>=0)for(let i=iG+2;i<R.length;i++){const r=R[i];if(!r||!r[0])break;gels.push(r)}
   const type=lab('Тип');
-  if(seg.length>1){charts.pace={kind:'line',series:[{pts:seg.map(r=>({x:(num(r[0])+num(r[1]))/2,y:durH(r[7])*60/num(r[4])})),color:'var(--red)'}],fmtY:v=>pace(v*60),fmtX:v=>Math.round(v)+' км',xPad:1}}
+  if(seg.length>1){charts.pace={kind:'line',series:[{pts:seg.map(r=>({x:(num(r[0])+num(r[1]))/2,y:durH(r[7])*60/num(r[4])})),color:'var(--acct)'}],fmtY:v=>pace(v*60),fmtX:v=>Math.round(v)+' км',xPad:1}}
   const every=seg.length>40?Math.ceil(seg.length/30):1;
   view.innerHTML=`<h2>${esc(raceSel)} · ден на старта</h2>
   <div class="tot"><div><span>Време за плана</span><b>${esc(lab('Време за плана')||'—')}</b><span>${esc(lab('Прогноза от Strava')?'прогноза '+lab('Прогноза от Strava'):'')}</span></div><div><span>Среден пейс</span><b>${esc(lab('Среден пейс (мин/км)')||'—')}</b><span>${esc(type)}</span></div><div><span>Гелове</span><b>${esc(lab('Брой гелове')||'—')}</b><span>${esc(lab('Въглехидрати реално (г/ч)')||'?')} г/ч</span></div></div>
@@ -540,7 +540,7 @@ function pmc(){
   }
   return out;
 }
-const formLabel=t=>t<-30?['високо натоварване – риск','var(--red)']:t<-10?['тренираш оптимално','var(--ok)']:t<5?['неутрално','var(--mute)']:t<=25?['свеж – готов за старт','var(--ok)']:['прекалено отпочинал','var(--warn)'];
+const formLabel=t=>t<-30?['високо натоварване – риск','var(--bad)']:t<-10?['тренираш оптимално','var(--ok)']:t<5?['неутрално','var(--mute)']:t<=25?['свеж – готов за старт','var(--ok)']:['прекалено отпочинал','var(--warn)'];
 const pc=v=>(v>0?'+':'')+Math.round(v)+'%';
 let fmMetric='ctl',fmRange='3m';
 const FM={ctl:['Фитнес','Натоварването ти, натрупано за ~6 седмици.',v=>String(Math.round(v))],atl:['Умора','Натоварването от последната седмица.',v=>String(Math.round(v))],pct:['Форма','Колко си свеж: (фитнес − умора) като % от фитнеса.',v=>(v>0?'+':'')+Math.round(v)+'%']};
@@ -567,7 +567,7 @@ function formHtml(){
   const past=s.filter(p=>!p.fut),fut=s.filter(p=>p.fut||p.x===+today);
   const races=season?season.slice(1,7).filter(r=>r[1]&&pd(r[0])).map(r=>({d:pd(r[0]),n:r[1]})).filter(r=>r.d>=today):[];
   charts.pmc={kind:'line',todayLine:true,series:[{pts:past.map(p=>({x:p.x,y:p.ctl})),color:'var(--ink)'},{pts:fut.map(p=>({x:p.x,y:p.ctl})),color:'var(--ink)',dash:true},{pts:past.map(p=>({x:p.x,y:p.atl})),color:'#e8875c'},{pts:fut.map(p=>({x:p.x,y:p.atl})),color:'#e8875c',dash:true}],fmtY:v=>Math.round(v),noDots:true};
-  charts.tsb={kind:'line',todayLine:true,series:[{pts:past.map(p=>({x:p.x,y:p.pct})),color:'var(--red)'},{pts:fut.map(p=>({x:p.x,y:p.pct})),color:'var(--red)',dash:true}],fmtY:v=>Math.round(v)+'%',zero:true,noDots:true};
+  charts.tsb={kind:'line',todayLine:true,series:[{pts:past.map(p=>({x:p.x,y:p.pct})),color:'var(--acct)'},{pts:fut.map(p=>({x:p.x,y:p.pct})),color:'var(--acct)',dash:true}],fmtY:v=>Math.round(v)+'%',zero:true,noDots:true};
   const [lb,lc]=formLabel(t.pct);
   return `${fitPanel(s)}<h2>Днес</h2>
   <div class="tot"><div><span>Фитнес</span><b>${Math.round(t.ctl)}</b><span>натоварване 6 седм.</span></div><div><span>Умора</span><b>${Math.round(t.atl)}</b><span>последната седмица</span></div><div><span>Форма</span><b style="color:${lc}">${pc(t.pct)}</b><span>${esc(lb)}</span></div></div>
@@ -584,7 +584,7 @@ function calHtml(){
     const k=iso(d),x=pl[k];let bg='var(--card)',op=1,cls='';
     if(raceD.has(k)){bg='var(--ink)'}
     else if(x&&num(x.G)){
-      if(d<today){due++;const r=num(x.I)/num(x.G);if(r>=.8){bg='var(--red)';done++}else if(r>0){bg='var(--red)';op=.45}else{bg='var(--mute)';op=.35}}
+      if(d<today){due++;const r=num(x.I)/num(x.G);if(r>=.8){bg='var(--acct)';done++}else if(r>0){bg='var(--acct)';op=.45}else{bg='var(--mute)';op=.35}}
       else{bg='transparent';cls='fut'}
     }
     if(+d===+today)cls+=' tdy';
@@ -592,7 +592,7 @@ function calHtml(){
   }
   return `<h2>Календар на сезона</h2><p class="hs">${due?`${done} от ${due} планирани бягания изпълнени (${Math.round(done/due*100)}%)`:'Сезонът тепърва започва'}</p>
   <div class="cal">${cells}</div>
-  <div class="lg"><span><i style="background:var(--red)"></i>изпълнено</span><span><i style="background:var(--red);opacity:.45"></i>частично</span><span><i style="background:var(--mute);opacity:.35"></i>пропуснато</span><span><i style="border:1px solid var(--mute)"></i>предстои</span><span><i style="background:var(--ink)"></i>старт</span></div>
+  <div class="lg"><span><i style="background:var(--acct)"></i>изпълнено</span><span><i style="background:var(--acct);opacity:.45"></i>частично</span><span><i style="background:var(--mute);opacity:.35"></i>пропуснато</span><span><i style="border:1px solid var(--mute)"></i>предстои</span><span><i style="background:var(--ink)"></i>старт</span></div>
   <p class="note">Колоните са седмиците (понеделник отгоре). Натисни ден, за да отвориш седмицата му.</p>`;
 }
 function renderForm(){view.innerHTML=formHtml()+calHtml()}
@@ -746,7 +746,7 @@ function renderSheet(){
   if(sheetVals&&isRace){
     const rows=sheetVals.map((r,i)=>({i,c:(r.values||[])}));
     const blk=[[4,5],[1,2],[7,8]].map(([l,v])=>{let out='';for(const r of rows){const L=r.c[l],V=r.c[v];const lt=L&&L.formattedValue,vt=V&&V.formattedValue;if(!lt&&!vt)continue;
-      if(lt&&!vt&&!(V&&V.userEnteredValue)&&!isY(V)&&lt===lt.toUpperCase()&&/[А-ЯA-Z]/.test(lt)){out+=`<h3 style="font-size:17px;margin:18px 0 4px;color:var(--red)">${esc(lt)}</h3>`;continue}
+      if(lt&&!vt&&!(V&&V.userEnteredValue)&&!isY(V)&&lt===lt.toUpperCase()&&/[А-ЯA-Z]/.test(lt)){out+=`<h3 style="font-size:17px;margin:18px 0 4px;color:var(--acct)">${esc(lt)}</h3>`;continue}
       if(lt&&!V&&l===7&&lt.length>60){out+=`<p class="note">${esc(lt)}</p>`;continue}
       const f=!!(V&&V.userEnteredValue&&V.userEnteredValue.formulaValue), cls=f?'f':isY(V)?'y':'e';
       out+=`<div class="it"><b>${esc(lt||'')}</b><div class="cv ${cls}" ${f?'':`data-cell="${r.i}:${v}" role="button" tabindex="0"`}>${esc(vt??'—')}</div></div>`}return out});

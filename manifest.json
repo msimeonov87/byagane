@@ -6,10 +6,10 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#d62d20",
+  "theme_color": "#f7b500",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {"src": "runy-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "runy-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "runy-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ]
 }
