@@ -176,7 +176,7 @@ const call=async(srv,tool,input,opt)=>(await mcp.callTool(srv,tool,input,opt)).p
 const txt=p=>typeof p==='string'?p:(p&&p.text)||JSON.stringify(p||'');
 
 async function loadPlan(refresh){
-  const p=await call(GS,'get_values',{spreadsheetId:SID,range:'План!A5:L193'},{cache:refresh?{refresh:true,staleTime:0,gcTime:3e5}:{staleTime:6e4,gcTime:3e5}});
+  const p=await call(GS,'get_values',{spreadsheetId:SID,range:'План!A5:L221'},{cache:refresh?{refresh:true,staleTime:0,gcTime:3e5}:{staleTime:6e4,gcTime:3e5}});
   plan=vals(p).map((r,i)=>({row:i+5,date:pd(r[0]),A:r[0]||'',B:r[1]||'',C:r[2]||'',D:r[3]||'',E:r[4]||'',F:r[5]||'',G:r[6]||'',H:r[7]||'',I:r[8]||'',J:r[9]||'',K:r[10]||'',L:r[11]||''})).filter(x=>x.date);
   document.getElementById('fresh').textContent='Таблицата е заредена '+new Date().toLocaleTimeString('bg-BG',{hour:'2-digit',minute:'2-digit'});
 }
@@ -398,7 +398,7 @@ function barSvg(d,W,H){
 const fig=(id,h)=>`<div class="fig" data-ch="${id}" style="height:${h||200}px"><svg role="img" aria-label="графика"></svg></div>`;
 // ---------- season: timeline + volume + forecasts ----------
 const phaseGroup=p=>/Taper/.test(p)?['Taper','#8a8f98']:/Възстанов|След|Връщане/.test(p)?['Възстановяване','#9bb8d3']:/пик/.test(p)?['Пик','#d62d20']:/специфична|подготовка/.test(p)?['Специфична','#e8875c']:/Изграждане/.test(p)?['Изграждане','#c9a227']:['База','#4f6d8a'];
-async function loadWeeks(){weeks=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'План!M5:T31'},{cache:{staleTime:6e4,gcTime:3e5}})).map((r,i)=>{r.row=i+5;return r}).filter(r=>pd(r[0]))}
+async function loadWeeks(){weeks=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'План!M5:T35'},{cache:{staleTime:6e4,gcTime:3e5}})).map((r,i)=>{r.row=i+5;return r}).filter(r=>pd(r[0]))}
 async function loadFcast(){fcast=vals(await call(GS,'get_values',{spreadsheetId:SID,range:'Прогнози!A1:H1000'},{cache:{staleTime:6e4,gcTime:3e5}}))}
 async function logForecast(){
   if(fcLogged||!season)return;fcLogged=true;
@@ -465,7 +465,13 @@ function recCharts(){
 }
 // ---------- race day ----------
 async function openRace(n){raceSel=n;raceVals=null;cur='race';for(const b of document.querySelectorAll('#tabs button'))b.setAttribute('aria-current','false');render();
-  try{raceVals=vals(await call(GS,'get_values',{spreadsheetId:SID,range:"'"+n.replace(/'/g,"''")+"'!B1:J300"},{cache:{staleTime:6e4,gcTime:3e5}}))}catch(e){view.innerHTML=`<div class="state">${esc(errText(e,GS))}</div>`;return}
+  try{raceVals=vals(await call(GS,'get_values',{spreadsheetId:SID,range:"'"+n.replace(/'/g,"''")+"'!B1:J300"},{cache:{staleTime:6e4,gcTime:3e5}}))}catch(e){
+    if(/не е намерен|not found|Unable to parse/i.test(String(e&&e.message||''))){
+      const r=(season||[]).find(x=>x&&x[1]===n)||[];
+      const it=(l,v)=>v?`<div><span style="color:var(--mute)">${l}</span> <b>${esc(v)}</b></div>`:'';
+      view.innerHTML=`<section class="day today" style="margin-top:12px"><h2 style="margin:0 0 8px">${esc(n)}</h2>${it('Дата',r[0])}${it('Приоритет',r[2])}${it('Тип',r[3])}${it('Км',r[4])}${it('D+',r[5]?r[5]+' м':'')}${it('Цел',r[7])}${it('Бележка',r[14])}<p class="note" style="margin-top:12px">Още няма подробен лист за това състезание (трасе, темпо по участъци, гелове, drop bags). Пиши на Claude в чата да го направи.</p></section>`;
+      return}
+    view.innerHTML=`<div class="state">${esc(errText(e,GS))}</div>`;return}
   if(cur==='race'&&raceSel===n)render();window.scrollTo(0,0)}
 function renderRace(){
   if(!raceVals){view.innerHTML=`<div class="state">Зареждам ${esc(raceSel)}…</div>`;return}
@@ -482,7 +488,7 @@ function renderRace(){
   <div class="tot"><div><span>Време за плана</span><b>${esc(lab('Време за плана')||'—')}</b><span>${esc(lab('Прогноза от Strava')?'прогноза '+lab('Прогноза от Strava'):'')}</span></div><div><span>Среден пейс</span><b>${esc(lab('Среден пейс (мин/км)')||'—')}</b><span>${esc(type)}</span></div><div><span>Гелове</span><b>${esc(lab('Брой гелове')||'—')}</b><span>${esc(lab('Въглехидрати реално (г/ч)')||'?')} г/ч</span></div></div>
   <div class="acts"><button data-raceedit="1">Цели и всички данни</button></div>
   ${seg.length>1&&type!=='Backyard'?`<h3 class="ct">Темпо по трасето</h3>${fig('pace',170)}`:''}
-  ${seg.length?`<h3 class="ct">${type==='Backyard'?'Обиколки':'Участъци'}</h3><div class="scroll"><table class="stack"><thead><tr><th>${type==='Backyard'?'Обиколка':'Км'}</th><th>D+</th><th>Участък</th><th>Общо време</th></tr></thead><tbody>${seg.filter((r,i)=>i%every===0||i===seg.length-1).map((r,i)=>`<tr><td>${type==='Backyard'?esc(String(seg.indexOf(r)+1))+' · до '+esc(r[1])+' км':esc(r[0])+'–'+esc(r[1])}</td><td class="n">${esc(r[2])}</td><td class="n">${esc(r[7])}</td><td class="n"><b>${esc(r[8])}</b></td></tr>`).join('')}</tbody></table></div>${every>1?`<p class="note">Показан е всеки ${every}-и участък; всички са в листа.</p>`:''}`:''}
+  ${seg.length?`<h3 class="ct">${type==='Backyard'?'Обиколки':'Участъци'}</h3><div class="scroll"><table style="width:100%;font-size:14px;border-collapse:collapse"><thead><tr style="color:var(--mute);text-align:right"><th style="text-align:left">${type==='Backyard'?'Обиколка':'Км'}</th><th>D+</th><th>D−</th><th>Пейс</th><th>До края</th></tr></thead><tbody>${seg.map((r,i)=>{const pc=num(r[4])?pace(durH(r[7])*3600/num(r[4])):'';const up=num(r[2]),dn=num(r[3]);return `<tr style="border-top:1px solid var(--line)"><td style="padding:5px 0">${type==='Backyard'?esc(String(i+1)):esc(String(r[0]).replace(/,00$/,''))+'–'+esc(String(r[1]).replace(/,00$/,''))}</td><td class="n" style="${up>=40?'color:var(--acct);font-weight:600':''}">${esc(r[2])}</td><td class="n" style="${dn>=40?'color:var(--mute);font-weight:600':''}">${esc(r[3])}</td><td class="n">${esc(pc)}</td><td class="n"><b>${esc(r[8])}</b></td></tr>`}).join('')}</tbody></table></div>`:''}
   ${gels.length?`<h3 class="ct">Кога кой гел</h3><div class="scroll"><table class="stack"><thead><tr><th>#</th><th>Време</th><th>Км</th><th>Гел</th><th>Носиш от</th></tr></thead><tbody>${gels.map(r=>`<tr><td>${esc(r[0])}</td><td class="n"><b>${esc(r[1])}</b></td><td class="n">${esc(r[2])}</td><td>${esc(r[3])}${num(r[7])?' · кофеин':''}</td><td>${esc(r[8])}</td></tr>`).join('')}</tbody></table></div>`:''}
   ${drop.length?`<h3 class="ct">Drop bag-ове</h3><div class="scroll"><table class="stack"><thead><tr><th>Пункт</th><th>Км</th><th>Пристигаш</th><th>Гела</th><th>Резерв</th></tr></thead><tbody>${drop.map(r=>`<tr><td>${esc(r[0])}</td><td class="n">${esc(r[1])}</td><td class="n">${esc(r[2])}</td><td class="n"><b>${esc(r[6])}</b></td><td class="n">${esc(r[7])}</td></tr>`).join('')}</tbody></table></div>`:''}`;
 }
