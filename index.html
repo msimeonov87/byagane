@@ -272,8 +272,12 @@ const avgOf=(a,k)=>{const v=a.map(l=>l[k]).filter(x=>x>0);return v.length?v.redu
 function zoneOf(F){const m=String(F||'').match(/(\d:\d\d)\s*[–-]\s*(\d:\d\d)/);return m?{lo:pSec(m[1]),hi:pSec(m[2]),t:m[1]+'–'+m[2]}:null}
 async function corosRun(d){
   const rec=txt(await call(CO,'querySportRecords',{startDate:ymd(d),endDate:ymd(d),sportTypeCodes:[100,101,102,103]},{cache:false}));
-  const runs=[];const re=/Duration:\s*([\d:]+)\s*\|\s*Distance:\s*([\d.]+)\s*km[\s\S]*?Average Pace:\s*([\d:]+)(?:[^\n]*?Avg HR:\s*(\d+))?[\s\S]*?LabelId:\s*(\d+)\s*\|\s*SportType:\s*(\d+)/g;let m;
-  while((m=re.exec(rec)))runs.push({dur:m[1],km:+m[2],pace:m[3],hr:m[4]?+m[4]:null,id:m[5],st:+m[6]});
+  const runs=[];
+  for(const b of rec.split(/\n\s*\d+\.\s+/).slice(1)){
+    const g=(r)=>{const m=b.match(r);return m};
+    const du=g(/Duration:\s*([\d:]+)\s*\|\s*Distance:\s*([\d.]+)\s*km/),pa=g(/Average Pace:\s*([\d:]+)/),hr=g(/Avg HR:\s*(\d+)/),id=g(/LabelId:\s*(\d+)\s*\|\s*SportType:\s*(\d+)/),co=g(/Start Coordinates:\s*([-\d.]+),\s*([-\d.]+)/),tw=g(/startTimestamp=(\d+)\s*\|\s*endTimestamp=(\d+)/);
+    if(du&&pa&&id)runs.push({dur:du[1],km:+du[2],pace:pa[1],hr:hr?+hr[1]:null,id:id[1],st:+id[2],lat:co?+co[1]:null,lon:co?+co[2]:null,t0:tw?+tw[1]:null,t1:tw?+tw[2]:null});
+  }
   if(!runs.length)return null;
   runs.sort((a,b)=>b.km-a.km);const main=runs[0];
   let d2=null;try{const p=await call(CO,'queryActivityLapData',{labelId:main.id,sportType:main.st},{cache:false});d2=typeof p==='string'?JSON.parse(p):(p&&p.text?JSON.parse(p.text):p)}catch(_){}
@@ -284,10 +288,26 @@ async function corosRun(d){
   return {runs,main,whole,km,man,tot:runs.reduce((s,r)=>s+r.km,0)};
 }
 function nextRun(x){return plan.filter(p=>p.date>x.date&&!/^Почивка/.test(p.D)&&num(p.G)>0).sort((a,b)=>a.date-b.date)[0]}
+async function runWeather(r,d){
+  const lat=r.lat||42.634,lon=r.lon||23.194;if(!r.t0)return null;
+  const old=(today-d)/864e5>85, host=old?'https://archive-api.open-meteo.com/v1/archive':'https://api.open-meteo.com/v1/forecast';
+  const u=host+'?latitude='+lat+'&longitude='+lon+'&hourly=temperature_2m,apparent_temperature,precipitation,rain,snowfall,wind_speed_10m,wind_gusts_10m,relative_humidity_2m&start_date='+iso(d)+'&end_date='+iso(d)+'&timezone=auto&timeformat=unixtime';
+  const j=await (await fetch(u)).json();const h=j&&j.hourly;if(!h||!h.time)return null;
+  const idx=h.time.map((t,i)=>[t,i]).filter(([t])=>t>=r.t0-3600&&t<=(r.t1||r.t0)).map(([,i])=>i);if(!idx.length)return null;
+  const a=k=>idx.map(i=>h[k][i]).filter(v=>v!=null),avg=k=>{const v=a(k);return v.length?v.reduce((s,x)=>s+x,0)/v.length:0},sum=k=>a(k).reduce((s,x)=>s+x,0),mx=k=>Math.max(...a(k));
+  const w={t:avg('temperature_2m'),fl:Math.min(...a('apparent_temperature')),pr:sum('precipitation'),sn:sum('snowfall'),wi:avg('wind_speed_10m'),gu:mx('wind_gusts_10m'),hu:avg('relative_humidity_2m')};
+  let pen=0;const why=[];
+  if(w.wi>12){pen+=Math.min(20,(w.wi-12)*0.6);why.push('вятър')}
+  if(w.sn>0.1){pen+=10;why.push('сняг')}else if(w.pr>0.5){pen+=5;why.push('дъжд')}
+  if(w.fl<-3){pen+=5;why.push('студ')}
+  if(w.t>18){pen+=(w.t-15)*1.5;why.push('топло')}
+  w.pen=Math.round(pen);w.why=why;return w;
+}
 async function analyzeLocal(x){
   const R=await corosRun(x.date);
   if(!R)throw{message:'В COROS още няма бягане за '+dmy(x.date)+'. Изчакай часовникът да се синхронизира и пробвай пак.'};
   const {main,whole:w,km,man}=R, type=String(x.D||''), z=zoneOf(x.F);
+  let WX=null;try{WX=await runWeather(main,x.date)}catch(_){}
   const structured=/^(Бърза|Баири|Тест|Равно темпо)/.test(type), easy=/^(Леко|Възстанов|Средно дълго|Дълго)/.test(type);
   const gap=w.adjustedPace||null, avgP=pSec(main.pace), up=w.elevGain!=null?Math.round(w.elevGain):null, dn=w.totalDescent!=null?Math.round(w.totalDescent):null;
   const hr=w.avgHr||main.hr, hrMax=w.maxHr, cad=w.avgCadence, pw=w.avgPower, sl=w.avgStrideLength;
@@ -302,6 +322,9 @@ async function analyzeLocal(x){
   if(sl)s+=', крачка '+(sl/100).toFixed(2).replace('.',',')+' м';
   if(R.runs.length>1)s+=' · '+R.runs.length+' бягания този ден';
   L.push(s+'.');
+  if(WX){const f=v=>String(Math.round(v)).replace('-','−');
+    L.push('Време: '+f(WX.t)+'°C (усеща се '+f(WX.fl)+'°C), вятър '+Math.round(WX.wi)+' км/ч (пориви до '+Math.round(WX.gu)+')'+(WX.sn>0.1?', сняг '+WX.sn.toFixed(1).replace('.',',')+' см':'')+(WX.pr>0.2?', валежи '+WX.pr.toFixed(1).replace('.',',')+' мм':', без валежи')+', влажност '+Math.round(WX.hu)+'%.'+(WX.pen>=5?' Условията струват около '+WX.pen+' сек/км ('+WX.why.join(', ')+').':''));}
+  if(x.K&&/(сняг|дъжд|вятър|лед|кал|болк|болен|настин|умор)/i.test(x.K))L.push('Твоя бележка: '+x.K.slice(0,200)+'.');
   // 2) По части
   let parts=[];
   if(km.length>=6){
@@ -324,8 +347,10 @@ async function analyzeLocal(x){
   const ev=[];let fatigue=0,tooFast=false;
   const G=num(x.G);if(G>0){const r=R.tot/G;ev.push(r<0.9?'съкратено ('+Math.round(r*100)+'% от '+x.G+' км)':r>1.1?'по-дълго от плана ('+x.G+' км)':'обемът е по план')}
   if(!structured&&z&&avgP){const cmp=/по равно/.test(x.F)&&gap?gap:avgP;
-    if(cmp<z.lo-5){ev.push('по-бързо от зоната '+z.t+' с ~'+(z.lo-cmp)+' сек/км');tooFast=true}
-    else if(cmp>z.hi+10)ev.push('по-бавно от зоната '+z.t+(up>150?' – нормално при този D+':''));
+    const pen=WX?WX.pen:0,adj=cmp-pen;
+    if(cmp<z.lo-5){ev.push('по-бързо от зоната '+z.t+' с ~'+(z.lo-cmp)+' сек/км'+(pen>=5?' – въпреки времето, т.е. усилието е било доста високо':''));tooFast=true;if(pen>=5)fatigue++}
+    else if(cmp>z.hi+10)ev.push(adj<=z.hi+10&&pen>=5?'по-бавно от зоната '+z.t+', но след корекция за времето (~'+pen+' сек/км) усилието е било в зоната – напълно нормално':'по-бавно от зоната '+z.t+(up>150?' – нормално при този D+':''));
+    else if(pen>=8){if(hr&&hr<0.9*LTHR)ev.push('темпото е в зоната '+z.t+' въпреки условията, а пулсът ('+hr+') остава умерен – отлична форма');else{ev.push('темпото е в зоната '+z.t+', но при тези условия това означава усилие над планираното (≈ '+pace(adj)+' при нормално време)');tooFast=true}}
     else ev.push('темпото е в зоната '+z.t)}
   if(structured&&z&&man.length>=3){const reps=man.filter(l=>l.avgPace&&l.time>45&&l.avgPace<=z.hi+25),ok=reps.filter(l=>l.avgPace>=z.lo-5&&l.avgPace<=z.hi+5).length;
     if(reps.length)ev.push(ok+' от '+reps.length+' работни части в '+z.t+(ok<reps.length?(reps.some(l=>l.avgPace<z.lo-5)?' (някои по-бързо – пести силите)':' (някои по-бавно)'):''))}
@@ -356,6 +381,7 @@ async function analyzeLocal(x){
     if(/^(Бърза|Равно темпо|Тест)/.test(nt))rec+=' Добра загрявка (10–15 мин леко + 3–4 ускорения) преди бързата част.';
     if(/^Баири/.test(nt))rec+=' Нагоре контролирано – последното повторение да е като първото, надолу меко.';
   }
+  if(WX&&(WX.sn>0.1||WX.pr>0.5||WX.fl<0))rec+=' След студено и мокро: топъл душ, суха топла дреха веднага, въглехидрати + протеин до 30 мин – имунитетът е по-уязвим.';
   L.push('Следващия път: '+rec);
   const out=L.join('\n\n');
   await call(GS,'update_values',{spreadsheetId:SID,range:'План!L'+x.row,values:[[/^[=+]/.test(out)?"'"+out:out]]},{cache:false});
