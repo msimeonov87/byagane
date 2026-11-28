@@ -144,7 +144,7 @@ window.__GAS__=true;
   document.addEventListener('DOMContentLoaded',chatUI);
   var mcp={callTool:function(s,t,i){return run(s,t,i)},watchTool:function(){return function(){}},invalidate:function(){return Promise.resolve()}};
   window.claude={use:function(n){return Promise.resolve(n==='mcp'?mcp:null)}};
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js')});
+  if('serviceWorker' in navigator){var hadCtl=!!navigator.serviceWorker.controller,reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(hadCtl&&!reloaded){reloaded=true;location.reload()}});window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(r){r.update()})})}
 })();
 </script>
 <script>
@@ -265,7 +265,150 @@ function fmtLaps(d){
   if(km)out+='По километри:\n'+km.laps.slice(0,60).map((l,i)=>(i+1)+'. '+line(l)).join('\n')+'\n';
   return out;
 }
+// ---------- подробен анализ в приложението (без AI) ----------
+const LTHR=171;
+const pSec=t=>{const m=String(t||'').match(/(\d{1,2}):(\d{2})/);return m?+m[1]*60+ +m[2]:null};
+const avgOf=(a,k)=>{const v=a.map(l=>l[k]).filter(x=>x>0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:0};
+function zoneOf(F){const m=String(F||'').match(/(\d:\d\d)\s*[–-]\s*(\d:\d\d)/);return m?{lo:pSec(m[1]),hi:pSec(m[2]),t:m[1]+'–'+m[2]}:null}
+async function corosRun(d){
+  const rec=txt(await call(CO,'querySportRecords',{startDate:ymd(d),endDate:ymd(d),sportTypeCodes:[100,101,102,103]},{cache:false}));
+  const runs=[];const re=/Duration:\s*([\d:]+)\s*\|\s*Distance:\s*([\d.]+)\s*km[\s\S]*?Average Pace:\s*([\d:]+)(?:[^\n]*?Avg HR:\s*(\d+))?[\s\S]*?LabelId:\s*(\d+)\s*\|\s*SportType:\s*(\d+)/g;let m;
+  while((m=re.exec(rec)))runs.push({dur:m[1],km:+m[2],pace:m[3],hr:m[4]?+m[4]:null,id:m[5],st:+m[6]});
+  if(!runs.length)return null;
+  runs.sort((a,b)=>b.km-a.km);const main=runs[0];
+  let d2=null;try{const p=await call(CO,'queryActivityLapData',{labelId:main.id,sportType:main.st},{cache:false});d2=typeof p==='string'?JSON.parse(p):(p&&p.text?JSON.parse(p.text):p)}catch(_){}
+  const g=(d2&&d2.lapGroups)||[];
+  const whole=((g.find(x=>x.type===-1)||{}).laps||[])[0]||{};
+  const km=((g.find(x=>x.type===10)||{}).laps||[]).filter(l=>l.distance>=90000);
+  const man=((g.find(x=>x.type===2)||{}).laps||[]);
+  return {runs,main,whole,km,man,tot:runs.reduce((s,r)=>s+r.km,0)};
+}
+function nextRun(x){return plan.filter(p=>p.date>x.date&&!/^Почивка/.test(p.D)&&num(p.G)>0).sort((a,b)=>a.date-b.date)[0]}
+async function analyzeLocal(x){
+  const R=await corosRun(x.date);
+  if(!R)throw{message:'В COROS още няма бягане за '+dmy(x.date)+'. Изчакай часовникът да се синхронизира и пробвай пак.'};
+  const {main,whole:w,km,man}=R, type=String(x.D||''), z=zoneOf(x.F);
+  const structured=/^(Бърза|Баири|Тест|Равно темпо)/.test(type), easy=/^(Леко|Възстанов|Средно дълго|Дълго)/.test(type);
+  const gap=w.adjustedPace||null, avgP=pSec(main.pace), up=w.elevGain!=null?Math.round(w.elevGain):null, dn=w.totalDescent!=null?Math.round(w.totalDescent):null;
+  const hr=w.avgHr||main.hr, hrMax=w.maxHr, cad=w.avgCadence, pw=w.avgPower, sl=w.avgStrideLength;
+  const L=[];
+  // 1) Изпълнение
+  let s='Изпълнение: '+R.tot.toFixed(2).replace('.',',')+' км за '+main.dur+' @ '+main.pace;
+  if(gap)s+=' (приравнено '+pace(gap)+')';
+  if(up!=null)s+=', D+ '+up+' м'+(dn!=null?' / D− '+dn+' м':'');
+  if(hr)s+=', пулс '+hr+(hrMax?' (макс. '+hrMax+')':'');
+  if(cad)s+=', каданс '+cad;
+  if(pw)s+=', мощност '+pw+' W';
+  if(sl)s+=', крачка '+(sl/100).toFixed(2).replace('.',',')+' м';
+  if(R.runs.length>1)s+=' · '+R.runs.length+' бягания този ден';
+  L.push(s+'.');
+  // 2) По части
+  let parts=[];
+  if(km.length>=6){
+    const n=km.length,t=Math.ceil(n/3),th=[km.slice(0,t),km.slice(t,2*t),km.slice(2*t)].filter(a=>a.length);
+    parts=th.map(a=>({p:avgOf(a,'avgPace'),g:avgOf(a,'adjustedPace'),h:avgOf(a,'avgHr'),c:avgOf(a,'avgCadence')}));
+    L.push('По части (трети): '+parts.map((q,i)=>(i+1)+'/3 '+pace(q.p)+(q.g?' ('+pace(q.g)+')':'')+(q.h?' · '+Math.round(q.h):'')).join(' | ')+'.');
+    const fk=km.reduce((a,l,i)=>(l.avgPace<a.v?{i,v:l.avgPace}:a),{i:0,v:1e9}),
+          sk=km.reduce((a,l,i)=>(l.avgPace>a.v?{i,v:l.avgPace}:a),{i:0,v:0});
+    const ups=km.filter(l=>(l.elevGain||0)>=15),downs=km.filter(l=>(l.totalDescent||0)>=15&&(l.elevGain||0)<8);
+    let t2='Най-бърз км '+(fk.i+1)+' ('+pace(km[fk.i].avgPace)+'), най-бавен км '+(sk.i+1)+' ('+pace(km[sk.i].avgPace)+')';
+    if(ups.length)t2+='; изкачвания ('+ups.length+' км) '+pace(avgOf(ups,'avgPace'))+' при пулс '+Math.round(avgOf(ups,'avgHr'));
+    if(downs.length)t2+='; спускания ('+downs.length+' км) '+pace(avgOf(downs,'avgPace'));
+    L.push(t2+'.');
+  }
+  if(structured&&man.length>=3){
+    const reps=man.filter(l=>l.avgPace&&l.time>45);
+    L.push('Лапове: '+reps.slice(0,16).map((l,i)=>(i+1)+'. '+pace(l.avgPace)+(l.avgHr?' ('+l.avgHr+')':'')).join(', ')+'.');
+  }
+  // 3) Оценка
+  const ev=[];let fatigue=0,tooFast=false;
+  const G=num(x.G);if(G>0){const r=R.tot/G;ev.push(r<0.9?'съкратено ('+Math.round(r*100)+'% от '+x.G+' км)':r>1.1?'по-дълго от плана ('+x.G+' км)':'обемът е по план')}
+  if(!structured&&z&&avgP){const cmp=/по равно/.test(x.F)&&gap?gap:avgP;
+    if(cmp<z.lo-5){ev.push('по-бързо от зоната '+z.t+' с ~'+(z.lo-cmp)+' сек/км');tooFast=true}
+    else if(cmp>z.hi+10)ev.push('по-бавно от зоната '+z.t+(up>150?' – нормално при този D+':''));
+    else ev.push('темпото е в зоната '+z.t)}
+  if(structured&&z&&man.length>=3){const reps=man.filter(l=>l.avgPace&&l.time>45&&l.avgPace<=z.hi+25),ok=reps.filter(l=>l.avgPace>=z.lo-5&&l.avgPace<=z.hi+5).length;
+    if(reps.length)ev.push(ok+' от '+reps.length+' работни части в '+z.t+(ok<reps.length?(reps.some(l=>l.avgPace<z.lo-5)?' (някои по-бързо – пести силите)':' (някои по-бавно)'):''))}
+  if(parts.length===3&&parts[0].h&&parts[2].h){
+    const p1=parts[0].g||parts[0].p,p3=parts[2].g||parts[2].p,dec=((parts[2].h*p3)/(parts[0].h*p1)-1)*100;
+    if(dec<5)ev.push('пулсов дрифт '+Math.round(dec)+'% – стабилно, добра аеробна база');
+    else if(dec<10){ev.push('умерен пулсов дрифт '+Math.round(dec)+'% (умора, топлина или малко течности/въглехидрати)');fatigue++}
+    else{ev.push('голям пулсов дрифт '+Math.round(dec)+'% – краят е бил тежък за тялото');fatigue+=2}
+    if(parts[0].c&&parts[2].c&&parts[0].c-parts[2].c>=3){ev.push('кадансът пада с '+Math.round(parts[0].c-parts[2].c)+' към края – уморени крака');fatigue++}
+    const sp=Math.max(...km.map(l=>l.adjustedPace||l.avgPace))-Math.min(...km.map(l=>l.adjustedPace||l.avgPace));
+    if(sp<=30)ev.push('много равномерно темпо');
+    if((parts[2].g||parts[2].p)<(parts[0].g||parts[0].p)-8)ev.push('финиширал си по-бързо от началото (негативен сплит)');
+  }
+  if(easy&&hr&&hr>0.9*LTHR){ev.push('пулсът е висок за леко бягане ('+hr+')');fatigue++}
+  const rr=recov?recov.slice(1).find(r=>pd(r[0])&&+pd(r[0])===+x.date):null;
+  if(rr&&/🔴/.test(rr[9])){ev.push('сутринта беше 🔴');fatigue+=2}else if(rr&&/🟡/.test(rr[9])){ev.push('сутринта беше 🟡');fatigue++}
+  L.push('Оценка: '+(ev.length?ev.join('; '):'няма достатъчно данни')+'.');
+  // 4) Препоръка за следващата
+  const nx=nextRun(x);let rec='';
+  if(!nx)rec='почивка.';else{
+    const nz=zoneOf(nx.F),nt=String(nx.D),when=dm(nx.date)+' ('+W[nx.date.getDay()]+')';
+    rec=when+' '+nt+(num(nx.G)?' '+nx.G+' км':'')+(nx.F?' @ '+nx.F:'')+'. ';
+    const lowHalf=nz?pace(Math.round((nz.lo+nz.hi)/2))+'–'+pace(nz.hi):'';
+    if(fatigue>=3)rec+='Признаци на умора – облекчи я: около −20% км'+(nz?' и темпо '+lowHalf:'')+'; ако утре сутринта е 🔴, само леко или почивка.';
+    else if(fatigue>=1||tooFast)rec+=(nz?'Дръж я в долната половина на зоната ('+lowHalf+')':'Започни по-спокойно')+(tooFast?' – днес беше по-бързо от нужното.':'.');
+    else rec+='Готов си – по план.';
+    if(/^(Дълго|Средно дълго)/.test(nt))rec+=' Първите 3 км 10–15 сек по-бавно; гел на всеки 40 мин, без твърда храна по изкачванията.';
+    if(/^(Бърза|Равно темпо|Тест)/.test(nt))rec+=' Добра загрявка (10–15 мин леко + 3–4 ускорения) преди бързата част.';
+    if(/^Баири/.test(nt))rec+=' Нагоре контролирано – последното повторение да е като първото, надолу меко.';
+  }
+  L.push('Следващия път: '+rec);
+  const out=L.join('\n\n');
+  await call(GS,'update_values',{spreadsheetId:SID,range:'План!L'+x.row,values:[[/^[=+]/.test(out)?"'"+out:out]]},{cache:false});
+  return out;
+}
+async function weeklyLocal(w){
+  const ws=pd(w[0]),we=new Date(ws);we.setDate(we.getDate()+7);
+  const days=plan.filter(p=>p.date>=ws&&p.date<we);
+  if(!strava[iso(ws)])try{await loadStrava(ws)}catch(_){}
+  const pk=num(w[2]),rk=num(w[3]),pu=num(w[5]),ru=num(w[6]),pct=pk?Math.round((rk+ru/100)/(pk+pu/100)*100):0;
+  const runDays=days.filter(d=>num(d.G)>0),done=runDays.filter(d=>num(d.I)>0);
+  const key=runDays.filter(d=>/^(Бърза|Баири|Тест|Равно темпо|Дълго|Средно дълго|Backyard)/.test(d.D));
+  const keyTxt=key.map(d=>{const r=num(d.I),p=num(d.G);return W[d.date.getDay()]+' '+d.D.replace(/ \+.*$/,'')+' '+(!r?'✗ пропусната':r<p*.9?'◐ съкратена ('+d.I+'/'+d.G+' км)':'✓')}).join(', ');
+  const strPlan=days.filter(d=>/силова/.test(d.D)).length;
+  let strDone=0;days.forEach(d=>{strDone+=(strava[iso(d.date)]||[]).filter(a=>/Weight|Workout/.test(a.sport_type)).length});
+  const an=days.map(d=>d.L||'').join(' '),fast=(an.match(/по-бързо от зоната/g)||[]).length,drift=(an.match(/голям пулсов дрифт|умерен пулсов дрифт/g)||[]).length,fatig=(an.match(/уморени крака|висок за леко/g)||[]).length;
+  const rv=recov?recov.slice(1).filter(r=>{const d=pd(r[0]);return d&&d>=ws&&d<we}):[];
+  let reds=0,yel=0,recTxt='няма записани сутрини (натискай „Как съм“)';
+  if(rv.length){const av=i=>{const v=rv.map(r=>num(r[i])).filter(x=>x>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0};
+    rv.forEach(r=>{if(/🔴/.test(r[9]))reds++;else if(/🟡/.test(r[9]))yel++});
+    const sm=rv.map(r=>{const m=String(r[1]).match(/(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:0}).filter(Boolean),sa=sm.length?sm.reduce((a,b)=>a+b,0)/sm.length:0;
+    recTxt=rv.length+' сутрини ('+(rv.length-reds-yel)+'🟢 '+yel+'🟡 '+reds+'🔴), HRV ср. '+av(3)+' (норма '+av(4)+'–'+av(5)+'), пулс в покой '+av(6)+' (30 дни '+av(7)+')'+(sa?', сън ср. '+Math.floor(sa/60)+':'+String(Math.round(sa%60)).padStart(2,'0'):'')}
+  let rec;
+  if(reds>=3)rec='много червени сутрини – облекчи леките дни с ~10% и пази съня';
+  else if(pct<80)rec='изпълнението е под 80% – не наваксвай; продължи по плана';
+  else if(pct>120)rec='доста над плана – следващата седмица нищо в повече, леките наистина леко';
+  else if(fast>=2)rec='леките често са по-бързи от зоната – дръж ги в долната половина, за да има сили за ключовите';
+  else if(drift>=2||fatig>=2)rec='пулсът/краката се уморяват към края – повече въглехидрати и течности, по-спокойно начало';
+  else rec='седмицата е по план – продължавай така';
+  const nwS=new Date(we),nwE=new Date(we);nwE.setDate(nwE.getDate()+7);
+  const nk=plan.filter(p=>p.date>=nwS&&p.date<nwE&&/^(Бърза|Баири|Тест|Равно темпо|Дълго|Средно дълго|Backyard|Състезание)/.test(p.D)).map(p=>W[p.date.getDay()]+' '+p.D.replace(/ \+.*$/,'')+(num(p.G)?' '+p.G+' км':'')).join(', ');
+  // прогнози
+  const prevW=weeks.find(r=>r.row===w.row-1),prevLine=((prevW&&prevW[7])||'').match(/Прогнози:[^\n]*/);
+  const fc=(season||[]).slice(1,7).filter(r=>r[1]&&pd(r[0])&&pd(r[0])>=today).map(r=>{
+    let v=String(r[9]||'').trim();if(!v||v==='няма таб')v=String(r[10]||'').trim();if(!v)return null;
+    let d='';const pm=prevLine&&prevLine[0].match(new RegExp(r[1].replace(/[.*+?^${}()|[\]\\']/g,'\\$&')+'\\s+([^(;]+)'));
+    if(pm){const a=pm[1].trim(),ta=a.match(/^(\d+):(\d\d)/),tb=v.match(/^(\d+):(\d\d)/);
+      if(ta&&tb){const dd=(+tb[1]*60+ +tb[2])-(+ta[1]*60+ +ta[2]);d=dd===0?' (=)':' ('+(dd>0?'+':'−')+Math.abs(dd)+' мин)'}
+      else{const na=num(a),nb=num(v);if(na&&nb){const dd=Math.round((nb-na)*10)/10;d=dd===0?' (=)':' ('+(dd>0?'+':'−')+String(Math.abs(dd)).replace('.',',')+')'}}}
+    return r[1]+' '+v+d}).filter(Boolean);
+  const out='Обем: '+w[3]+' от '+w[2]+' км, D+ '+w[6]+' от '+w[5]+' м ('+pct+'% по ефективни км). Бягания '+done.length+'/'+runDays.length+(keyTxt?'; ключови: '+keyTxt:'')+'. Силови '+strDone+'/'+strPlan+'.'+
+    '\n\nВъзстановяване: '+recTxt+'.\n\nПрепоръка: '+rec+'.'+(nk?' Ключови следващата седмица: '+nk+'.':'')+(fc.length?'\n\nПрогнози: '+fc.join('; '):'');
+  await call(GS,'update_values',{spreadsheetId:SID,range:'План!T'+w.row,values:[[out]]},{cache:false});
+  return out;
+}
+
 async function analyzeDay(x){
+  if(window.__GAS__){
+    anBusy[x.row]=true;if(cur==='plan')render();
+    try{x.L=await analyzeLocal(x);anErr=''}
+    catch(e){const m=document.getElementById('m'+x.row);anErr=(e&&e.message)||'Анализът не успя.';delete anBusy[x.row];if(cur==='plan')render();const mm=document.getElementById('m'+x.row);if(mm){mm.hidden=false;mm.textContent=anErr}return}
+    delete anBusy[x.row];if(cur==='plan')render();return;
+  }
   const runs=(strava[iso(x.date)]||[]).filter(a=>/Run/.test(a.sport_type));if(!runs.length||!sampleFn)return;
   anBusy[x.row]=true;if(cur==='plan')render();
   try{
@@ -622,6 +765,10 @@ function checkHtml(){
 // ---------- weekly report ----------
 function weekRow(ws){return weeks?weeks.find(w=>+pd(w[0])===+ws):null}
 async function weeklyReport(ws){
+  if(window.__GAS__){const w=weekRow(ws);if(!w||repBusy[w.row])return;repBusy[w.row]=true;if(cur==='plan')render();
+    try{w[7]=await weeklyLocal(w)}
+    catch(e){alertMsg((e&&e.message)||'Седмичният анализ не успя.')}
+    delete repBusy[w.row];if(cur==='plan')render();return}
   const w=weekRow(ws);if(!w||!sampleFn||repBusy[w.row])return;
   repBusy[w.row]=true;if(cur==='plan')render();
   try{
@@ -651,8 +798,8 @@ function reportHtml(){
   const w=weekRow(weekStart);if(!w)return '';
   if(repBusy[w.row])return '<div class="an"><b>Седмичен доклад</b>Пиша доклада за седмицата…</div>';
   const ended=+weekStart<+monday(today)||(today.getDay()===0);
-  if(w[7])return `<div class="an"><b>Седмичен доклад</b>${esc(w[7])}</div>${sampleFn?'<div class="acts"><button data-rep="1">Обнови доклада</button></div>':''}`;
-  return ended&&sampleFn&&num(w[3])>0?'<div class="acts"><button data-rep="1">Седмичен доклад</button></div>':'';
+  if(w[7])return `<div class="an"><b>Седмичен доклад</b>${esc(w[7])}</div>${sampleFn||window.__GAS__?'<div class="acts"><button data-rep="1">Обнови анализа</button></div>':''}`;
+  return ended&&(sampleFn||window.__GAS__)&&num(w[3])>0?'<div class="acts"><button data-rep="1">Седмичен анализ</button></div>':'';
 }
 
 function renderRaces(){
@@ -681,7 +828,7 @@ function dayCard(x){
   ${anBusy[x.row]?`<div class="an"><b>Анализ</b>Анализирам бягането…</div>`:x.L?`<div class="an"><b>Анализ</b>${esc(x.L)}</div>`:''}
   ${stravaLine(x)}
   ${corosLine(x)}
-  ${ed||`<div class="acts"><button data-ed="${x.row}">Промени</button>${sampleFn&&hasRun(x)?`<button data-an="${x.row}">${x.L?'Анализирай отново':'Анализ'}</button>`:''}${x.date>=today&&!/^Почивка/.test(x.D)?`<button data-sync="${x.row}">Към COROS</button>`:''}</div><div class="msg" id="m${x.row}" hidden></div>`}
+  ${ed||`<div class="acts"><button data-ed="${x.row}">Промени</button>${(sampleFn?hasRun(x):(window.__GAS__&&x.date<=today&&!/^Почивка/.test(x.D)))?`<button data-an="${x.row}">${x.L?'Анализирай отново':'Анализ'}</button>`:''}${window.__GAS__&&x.date.getDay()===0&&x.date<=today?`<button data-rep="1">Седмичен анализ</button>`:''}${x.date>=today&&!/^Почивка/.test(x.D)?`<button data-sync="${x.row}">Към COROS</button>`:''}</div><div class="msg" id="m${x.row}" hidden></div>`}
   </article>`;
 }
 function editForm(x){
